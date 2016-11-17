@@ -1,2 +1,3 @@
 # MSc-Data-Science
-E.g. coursework relating to my Masters in Data Science at Goldsmiths, 2016/7
+
+Hello, world. Having been a Java developer for 16 years, I'm now doing an MSc in Data Science in a late bid to become more relevant. So this repo is for e.g. coursework and other studenty stuff. 
