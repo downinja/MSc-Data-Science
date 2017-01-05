@@ -1,0 +1,267 @@
+---
+title: "IS71068A Data Programming: Assignment 2"
+author: "John Downing"
+output: 
+  html_document:
+    df_print: paged
+    fig_height: 10.5
+    fig_width: 25
+    theme: cerulean
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries, message=FALSE, warning=FALSE}
+# load libraries
+library(ggplot2)
+library(colorspace)
+library(gplots)
+
+```
+```{r helpers}
+# Helper functions 
+
+fillna <- function(col, replacement) {
+  return (ifelse(is.na(col),replacement,col))
+}
+
+count <- function(x) {
+  return (NROW(x))
+}
+
+```
+
+
+## Part A
+
+```{r load_csv}
+# Set working directory to folder containing our csv file
+setwd("C:/Users/john/dev/goldsmiths/data programming/assignment2")
+
+# Load the csv file into a data frame. Note that we're explicitly 
+# specifying the data types for these, since CellID and countrycode 
+# are categorical - despite their numeric labels.  
+data <- read.csv(
+  file = "sms-call-internet-mi-2013-11-01.csv", 
+  header = TRUE,
+  colClasses = c("factor","factor","factor","double","double","double","double","double")
+)
+```
+
+(a) Write the R code to return the first 10 rows in the dataset.
+
+```{r a:a}
+data[1:10,]
+```
+
+(b) Write the R code to determine how many unique country codes are contained in the data. 
+
+```{r a:b}
+# Note I'm not including rows with countrycode == 0, as per the assignment 
+# instructions we can't assume very much about what they represent. 
+nonzerocc <- data$countrycode != 0
+print(sprintf("Number of unique (not including zero) country codes: %s", 
+  length(unique(data[nonzerocc,]$countrycode))))
+```
+
+(c)  Plot the distribution of country codes in the data.
+
+```{r a:c}
+
+# Note that this will be a barplot, not a histogram - since even though 
+# the labels for country codes are numeric, the data that they represent
+# is not. It's not even ordinal - so we're not going to sort the x-axis
+# numerically. There does appear to be *some* grouping structure, though
+# - e.g. https://en.wikipedia.org/wiki/List_of_country_calling_codes. So
+# on that basis, I'm going to use colour to visualise this per the legend
+# below.
+codegroup.labels <- c(
+  "0  -  Unknown", 
+  "1xx - North America", 
+  "2xx - Africa", 
+  "3xx - Europe1", 
+  "4xx - Europe2", 
+  "5xx - Central and South America", 
+  "6xx - Southeast Asia and Oceania", 
+  "7xx - Russia / former USSR", 
+  "8xx - East Asia", 
+  "9xx - Asia"
+)
+
+# I'm adding a column to the data frame to identify which "code group"
+# each row belongs to, by taking the first character of its countrycode.
+data$codegroup <- apply(matrix(data$countrycode), 2, 
+  function (x) substr(x, 1, 1))
+
+# These will be the y-axis labels/values - since otherwise (and because we're)
+# using a log10 scale for the axis - the defaults aren't particularly helpful.
+# There's probably something "clever" that could be done with combined sequences,
+# rather than just hacking together a bunch of strings, but it didn't seem necessary.
+yaxis.breaks <- c("1", "2", "3", "5", "10", "50", "25", "100", "250", 
+    "500", "1000", "2500", "5000", "10000", "25000", "50000", "100000", "200000")
+
+# Am using ggplot2. Regards the x-axis labels, I've left them in (rotated by 90 degrees), 
+# since that seemed like the least bad option. To my way of thinking, it was either all or 
+# nothing; that is, there didn't seem to be a sensible way of including some of the 
+# labels but not others, in order to make them all fit onto a normally sized chart.
+# (I did consider labelling only the ones with the highest frequencies from each group, but
+# decided that this wouldn't add much value - nor would it be a very useful chart if I 
+# left all the labels off.) This version below only really works if you view it zoomed
+# in - but then the nature of the data kind of demands that anyways.
+
+print(
+  ggplot(
+    data = data, 
+    aes(
+      x = countrycode, 
+      fill = codegroup
+    )
+  ) +
+  geom_bar() + 
+  scale_fill_manual(
+      name = "Code Group",
+      values = rainbow_hcl(10, start=30, end=300),
+      breaks = sort(unique(data$codegroup)),
+      labels = codegroup.labels
+  ) +
+  scale_y_log10(
+    breaks = as.integer(yaxis.breaks),
+    labels = yaxis.breaks
+  ) +
+  theme(
+    axis.text.x = element_text(angle=90, vjust=0.1, hjust=1)
+  ) +
+  ggtitle("Country Code Distribution: 2013-11-01") + 
+  labs(
+    x = "Country Code",
+    y = "Frequency"  
+  )
+)
+```
+(Right click and save the above image in order to view at correct zoom level, for x-axis labels.)
+
+(d) Add a new column to your data called "totalsms"" that contains the sum of smsin and smsout. Similarly, add a new column to your data called "totalcalls" that contains the sum of callin and callout. 
+
+```{r a:d}
+# Note that we have to fill NAs with 0s, otherwise 0.3521 + NA (for example) = NA.
+data$totalsms <- fillna(data$smsin, 0) + fillna(data$smsout, 0)
+data$totalcalls <- fillna(data$callin, 0) + fillna(data$callout, 0)
+data[1:10,]
+```
+
+(e) Plot the overall total of the "totalsms" column over the country code. 
+
+```{r a:e}
+# Slightly different logic for this one, regards the range on the y-axis.
+# Again, a relatively small number of country codes have totalsms values
+# which dwarf the majority - however we can't use a log scale, since some
+# country codes have totalsms of zero, and log(0) is undefined. We could 
+# remove these country codes from the chart, but then we would lose that
+# information (e.g. which country codes have zero totalsms). So instead,
+# I'm using scales::squish to truncate anything above 20000, and manually
+# annotating totalsms values for any countrycodes which exceed this.
+
+# first do the "groupBy" with sum(x) as the aggregate function 
+smsByCountry <- aggregate(totalsms ~ countrycode, data, sum)
+# add on our codegroup values, for visual fill colours
+smsByCountry$codegroup <- apply(matrix(smsByCountry$countrycode), 2, 
+   function (x) substr(x, 1, 1))
+# now do the (bar)plot
+print(
+  ggplot(
+    data = smsByCountry, 
+    aes(
+      x = countrycode, 
+      y = totalsms, 
+      fill = codegroup
+    )
+  ) +
+  geom_bar(stat = "identity") + 
+  scale_fill_manual(
+    name = "Code Group",
+    values = rainbow_hcl(10, start=30, end=300),
+    breaks = sort(unique(data$codegroup)),
+    labels = codegroup.labels
+  ) +
+  scale_y_continuous(
+    limits = c(0, 20000),
+    oob = scales::squish
+  ) +
+  theme(
+      axis.text.x = element_text(angle=90, vjust=0.1, hjust=1)
+  ) +
+  ggtitle("Total SMS by Country Code: 2013-11-01") + 
+  labs(
+    x = "Country Code",
+    y = "Total SMS"  
+  ) +
+  annotate("text", x = 6, y = 22000, label = "1618103.78", size = 3) +
+  annotate("text", x = 114, y = 22000, label = "33653.34 ", size = 3) +
+  annotate("text", x = 135, y = 22000, label = "5577979.81", size = 3) +
+  annotate("text", x = 151, y = 22000, label = "23113.67", size = 3)
+)
+```
+(Right click and save the above image in order to view at correct zoom level, for x-axis labels.)
+
+## PART B
+
+(f) Make a heatmap. The heat map should visualize the mean of the smsin, smsout, callin, callout, and internet data columns computed over the hour of the day. 
+
+```{r b:f}
+# aggregate specified variables by hour of day, using "mean" as 
+# the aggregate function
+mean.smsin <- aggregate(smsin ~ datetime, data, mean)
+mean.smsout <- aggregate(smsout ~ datetime, data, mean)
+mean.callin <- aggregate(callin ~ datetime, data, mean)
+mean.callout <- aggregate(callout ~ datetime, data, mean)
+mean.internet <- aggregate(internet ~ datetime, data, mean)
+
+# create a dataframe for the (normalised) aggregate values..
+hmap_data <- data.frame(
+  datetime=mean.smsin$datetime,
+  smsin=scale(mean.smsin$smsin), 
+  smsout=scale(mean.smsout$smsout), 
+  callin=scale(mean.callin$callin), 
+  callout=scale(mean.callout$callout), 
+  internet=scale(mean.internet$internet)
+)
+# ..and plot it (using gplots::heatmap.2, so we get a colour bar legend)
+heatmap.2(
+  data.matrix(hmap_data[,-1]), 
+  main = "Mean values per hour of day: 2013-11-01",
+  labRow = apply(matrix(hmap_data$datetime), 2, 
+      function (x) substr(x, 11, 16)),
+  Rowv = "none", 
+  Colv = "none",
+  margins = c(8,5),
+  dendrogram = "none",
+  # blue = cold, red = hot etc
+  col = diverge_hcl(24, c = 100, l = c(50, 90), power = 1)
+)
+
+```
+
+## PART C
+
+Run some analysis on the missing data
+
+(g) Which CellID has the most amount of missing data for the internet column?
+
+```{r c:g}
+# apply logical filter so we only have rows where internet is NA
+na.internet <- data[is.na(data$internet),]
+# and now group these by CellID, using "count" as the aggregate function
+na.internet <- aggregate(cbind(count = CellID) ~ CellID, na.internet, count)
+# print off the row(s) which have the max NA count
+max.na <- na.internet[na.internet$count == max(na.internet$count),]
+print(sprintf("CellID with most (%s) NA values for variable 'internet': %s", max.na$count, max.na$CellID))
+```
+
+(h) Impute the internet data column by replacing the missing values with the mean of internet column.
+```{r c:h}
+data$internet <- fillna(data$internet, mean(data$internet, na.rm=TRUE))
+data[1:10,]
+```
+

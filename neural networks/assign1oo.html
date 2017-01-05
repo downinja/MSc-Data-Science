@@ -1,0 +1,3294 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>assign1oo</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-12-07"><meta name="DC.source" content="assign1oo.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+  </style></head><body><div class="content">
+
+</pre>
+
+  <pre class="codeinput">PATTERNS = [
+    1 0;
+    1 1;
+];
+
+TARGETS = [
+    1;
+    1;
+];
+
+X1 = Node(<span class="string">'x1'</span>, NodeType.INPUT);
+X2 = Node(<span class="string">'x2'</span>, NodeType.INPUT);
+H1 = Node(<span class="string">'h1'</span>, NodeType.HIDDEN, ActivationFunction.SIGMOID);
+H2 = Node(<span class="string">'h2'</span>, NodeType.HIDDEN, ActivationFunction.SIGMOID);
+H3 = Node(<span class="string">'h3'</span>, NodeType.HIDDEN, ActivationFunction.SIGMOID);
+O =  Node(<span class="string">'o1'</span>, NodeType.OUTPUT, ActivationFunction.SUM);
+
+C1 = Connection(<span class="string">'w1'</span>, X1, H1,  0.3);
+C2 = Connection(<span class="string">'w2'</span>, X1, O,   0.2);
+C3 = Connection(<span class="string">'w3'</span>, X1, H2,  0.1);
+C4 = Connection(<span class="string">'w4'</span>, X2, H2, -0.2);
+C5 = Connection(<span class="string">'w5'</span>, X2, O,   0.2);
+C6 = Connection(<span class="string">'w6'</span>, X2, H3,  0.2);
+C7 = Connection(<span class="string">'w7'</span>, H3, O,  -0.2);
+C8 = Connection(<span class="string">'w8'</span>, H2, O,   0.3);
+C9 = Connection(<span class="string">'w9'</span>, H1, O,   0.2);
+
+<span class="keyword">global</span> CONNECTIONS
+CONNECTIONS = [C1, C2, C3, C4, C5, C6, C7, C8, C9];
+
+LEARN_RATE = 1.0;
+MAX_EPOCHS = 100;
+MIN_WEIGHT_DIFF = 0.00001;
+[NUM_PATTERNS,~] = size(PATTERNS);
+
+fprintf (<span class="string">'INITIAL VALUES\n--------------\n'</span>)
+fprintf (<span class="string">'LEARN_RATE: %.4f\n'</span>, LEARN_RATE)
+fprintf (<span class="string">'MAX_EPOCHS: %.4f'</span>, MAX_EPOCHS)
+logWeights()
+
+<span class="keyword">for</span> epoch = 1:MAX_EPOCHS
+
+    weightsBefore = extractWeights();
+    TSS = 0;
+    <span class="keyword">for</span> p = 1:NUM_PATTERNS
+
+        fprintf (<span class="string">'\n-------------------\nepoch %1d pattern %1d\n-------------------'</span>, epoch, p)
+
+        pattern = PATTERNS(p, :);
+        target = TARGETS(p,:);
+
+        <span class="comment">% Do the forward pass (starting with the output node -</span>
+        <span class="comment">% which will recursively call back to the lower layers)</span>
+        out = O.calculateOutput(pattern);
+        fprintf (<span class="string">'\noutput: %.4f'</span>, out)
+
+        <span class="comment">% Update TSS</span>
+        error = target - out;
+        TSS = TSS + (error^2);
+
+        <span class="comment">% Now do the back-prop. Again, the Node.m class</span>
+        <span class="comment">% will recursively push the beta back to the</span>
+        <span class="comment">% lower layers.</span>
+        O.backProp(error, LEARN_RATE);
+
+        <span class="comment">% log the weights after each pattern</span>
+        logWeights()
+
+    <span class="keyword">end</span>
+
+    <span class="comment">% log the MSE after each epoch</span>
+    MSE = TSS / NUM_PATTERNS;
+    fprintf (<span class="string">'\nMSE: %.4f'</span>, MSE)
+
+    <span class="comment">% exit if nothing has changed (presume converged)</span>
+    weightsAfter = extractWeights();
+    <span class="keyword">if</span> not(weightsChanged(weightsBefore, weightsAfter, MIN_WEIGHT_DIFF))
+        fprintf (<span class="string">'\nBreaking from loop as weights have not changed this epoch'</span>)
+        <span class="keyword">break</span>
+    <span class="keyword">end</span>
+
+<span class="keyword">end</span>
+
+fprintf (<span class="string">'\n\n'</span>)
+
+<span class="keyword">function</span> logWeights()
+    <span class="keyword">global</span> CONNECTIONS
+    fprintf (<span class="string">'\nconnections: '</span>)
+    <span class="keyword">for</span> i=1:length(CONNECTIONS)
+        fprintf(<span class="string">'%s=%.4f '</span>, CONNECTIONS(i).id, CONNECTIONS(i).weight)
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> weights = extractWeights()
+    <span class="keyword">global</span> CONNECTIONS
+    weights=zeros(length(CONNECTIONS));
+    <span class="keyword">for</span> i=1:length(CONNECTIONS)
+        weights(i) = CONNECTIONS(i).weight;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> changed = weightsChanged(before, after, minDiff)
+    changed = false;
+    diff = before - after;
+    <span class="keyword">for</span> i=1:length(diff)
+        <span class="keyword">if</span> abs(diff(i)) &gt; minDiff
+            changed = true;
+            <span class="keyword">break</span>;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre>
+
+<pre class="codeinput"><span class="keyword">classdef</span> Node &lt; handle
+
+    <span class="keyword">properties</span> (SetAccess=<span class="string">'immutable'</span>)
+        id
+        type
+        activation
+    <span class="keyword">end</span>
+
+    <span class="keyword">properties</span> (GetAccess=<span class="string">'public'</span>, SetAccess=<span class="string">'private'</span>)
+        sum
+        output
+    <span class="keyword">end</span>
+
+    <span class="keyword">methods</span>
+
+        <span class="keyword">function</span> obj = Node(id, type, activation)
+            obj.id = id;
+            obj.type = type;
+            obj.sum = 0;
+            obj.output = 0;
+            <span class="keyword">if</span> exist(<span class="string">'activation'</span>,<span class="string">'var'</span>)
+                obj.activation = activation;
+            <span class="keyword">else</span>
+                obj.activation = ActivationFunction.NONE;
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> r = addInput(obj, amount)
+            obj.sum = obj.sum + amount;
+            <span class="keyword">switch</span> obj.activation
+                <span class="keyword">case</span> ActivationFunction.SIGMOID
+                    obj.output = 1 / (1 + exp(-obj.sum));
+                <span class="keyword">case</span> ActivationFunction.SUM
+                    obj.output = obj.sum;
+            <span class="keyword">end</span>
+            r = obj.output;
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> obj = reset(obj)
+            obj.sum = 0;
+            obj.output = 0;
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> r = calculateOutput(obj, pattern)
+
+            <span class="keyword">global</span> CONNECTIONS
+
+            obj.reset();
+            <span class="keyword">switch</span> obj.type
+                <span class="keyword">case</span> NodeType.INPUT
+                    <span class="comment">% TODO, remove hacky depenedncy on e.g. X1/X2</span>
+                    <span class="keyword">if</span> endsWith(obj.id(), <span class="string">'1'</span>)
+                        obj.output = pattern(1);
+                    <span class="keyword">else</span>
+                        obj.output = pattern(2);
+                    <span class="keyword">end</span>
+               <span class="keyword">case</span> {NodeType.HIDDEN, NodeType.OUTPUT}
+                    <span class="keyword">for</span> i = 1:length(CONNECTIONS)
+                        <span class="keyword">if</span> (CONNECTIONS(i).to() == obj)
+                            input = CONNECTIONS(i);
+                            out = input.from().calculateOutput(pattern);
+                            obj.addInput(out * input.weight());
+                        <span class="keyword">end</span>
+                    <span class="keyword">end</span>
+            <span class="keyword">end</span>
+            r = obj.output;
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> backProp(obj, error, learnRate, from)
+
+            <span class="keyword">global</span> CONNECTIONS
+
+            <span class="keyword">if</span> exist(<span class="string">'from'</span>,<span class="string">'var'</span>)
+                fprintf (<span class="string">'\nbackProp from %s to %s over connection %s (error=%.4f)'</span>, <span class="keyword">...</span>
+                    from.to.id, obj.id, from.id(), error)
+            <span class="keyword">else</span>
+                fprintf (<span class="string">'\nbackProp to %s (error=%.4f)'</span>, obj.id, error)
+            <span class="keyword">end</span>
+
+            fromWeight = 0;
+            <span class="keyword">if</span> obj.type == NodeType.OUTPUT
+                <span class="comment">% just to make the code easier below.</span>
+                fromWeight = 1;
+            <span class="keyword">else</span>
+                fromWeight = from.weight;
+            <span class="keyword">end</span>
+
+            <span class="comment">% Calculate the outbound and inbound changes, based</span>
+            <span class="comment">% on the total error from above.</span>
+            delta = error * obj.output; <span class="comment">% outbound weight change</span>
+            beta = 0; <span class="comment">% amount of error to push down</span>
+            <span class="keyword">switch</span> obj.activation
+                <span class="keyword">case</span> ActivationFunction.SIGMOID
+                    beta = learnRate * obj.output * (1-obj.output) * error * fromWeight;
+                <span class="keyword">case</span> ActivationFunction.SUM
+                    beta = learnRate * error * fromWeight;
+            <span class="keyword">end</span>
+
+            Node.logDeltaAndBeta(obj, delta, beta);
+
+            <span class="comment">% Now for any connections to us, push down our contribution</span>
+            <span class="comment">% to the error from above (our beta value)</span>
+            <span class="keyword">for</span> i = 1:length(CONNECTIONS)
+                connection = CONNECTIONS(i);
+                <span class="keyword">if</span> connection.to == obj
+                    connection.from.backProp(beta,learnRate,connection);
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+
+            <span class="comment">% Finally, adjust the weight on the connection which is</span>
+            <span class="comment">% passing us the error from above.</span>
+            <span class="keyword">if</span> obj.type ~= NodeType.OUTPUT
+                from.increment(delta);
+            <span class="keyword">end</span>
+
+        <span class="keyword">end</span>
+
+    <span class="keyword">end</span>
+
+    <span class="keyword">methods</span>(Static, Access=private)
+
+        <span class="keyword">function</span> logDeltaAndBeta(obj, delta, beta)
+            <span class="keyword">if</span> obj.type == NodeType.OUTPUT
+                fprintf (<span class="string">'\n%s beta=%.4f, no delta as OUTPUT layer'</span>, obj.id, beta)
+            <span class="keyword">elseif</span> obj.type == NodeType.INPUT
+                fprintf (<span class="string">'\n%s delta=%.4f, no beta as INPUT layer'</span>, obj.id, delta)
+            <span class="keyword">else</span>
+                fprintf (<span class="string">'\n%s delta=%.4f beta=%.4f '</span>, obj.id, delta, beta)
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+    <span class="keyword">end</span>
+
+
+<span class="keyword">end</span>
+</pre>
+
+<pre class="codeinput"><span class="keyword">classdef</span> Connection &lt; handle
+
+    <span class="keyword">properties</span> (SetAccess=<span class="string">'immutable'</span>)
+        id              <span class="comment">% our id e.g. 'w1'</span>
+        from            <span class="comment">% the node we're connecting from e.g. 'X1' or 'H2'</span>
+        to              <span class="comment">% the node we're connecting to e.g. 'X2' or 'O1'</span>
+    <span class="keyword">end</span>
+
+    <span class="keyword">properties</span> (GetAccess=<span class="string">'public'</span>, SetAccess=<span class="string">'private'</span>)
+        weight          <span class="comment">% our current weight</span>
+    <span class="keyword">end</span>
+
+    <span class="keyword">methods</span>
+
+        <span class="comment">% constructor</span>
+        <span class="keyword">function</span> obj = Connection(id, from, to, weight)
+            obj.id = id;
+            obj.from = from;
+            obj.to = to;
+            obj.weight = weight;
+        <span class="keyword">end</span>
+
+        <span class="comment">% update weight by specified delta</span>
+        <span class="keyword">function</span> increment(obj, delta)
+            <span class="keyword">if</span> (delta &gt; 0.00000000001)
+                fprintf (<span class="string">'\n%s.increment(%.4f)'</span>, obj.id, delta)
+            <span class="keyword">end</span>
+            obj.weight = obj.weight + delta;
+        <span class="keyword">end</span>
+
+    <span class="keyword">end</span>
+
+<span class="keyword">end</span>
+</pre>
+
+<pre class="codeinput"><span class="keyword">classdef</span> NodeType
+
+    <span class="keyword">enumeration</span>
+        INPUT,
+        HIDDEN,
+        OUTPUT
+    <span class="keyword">end</span>
+
+<span class="keyword">end</span>
+</pre>
+
+<pre class="codeinput"><span class="keyword">classdef</span> ActivationFunction
+
+    <span class="keyword">enumeration</span>
+        NONE, SUM, SIGMOID
+    <span class="keyword">end</span>
+
+<span class="keyword">end</span>
+</pre>
+
+
+
+<pre class="codeoutput">INITIAL VALUES
+--------------
+LEARN_RATE: 1.0000
+MAX_EPOCHS: 100.0000
+connections: w1=0.3000 w2=0.2000 w3=0.1000 w4=-0.2000 w5=0.2000 w6=0.2000 w7=-0.2000 w8=0.3000 w9=0.2000
+-------------------
+epoch 1 pattern 1
+-------------------
+output: 0.3724
+backProp to o1 (error=0.6276)
+o1 beta=0.6276, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.6276)
+x1 delta=0.6276, no beta as INPUT layer
+w2.increment(0.6276)
+backProp from o1 to x2 over connection w5 (error=0.6276)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.6276)
+h3 delta=0.3138 beta=-0.0314
+backProp from h3 to x2 over connection w6 (error=-0.0314)
+x2 delta=-0.0000, no beta as INPUT layer
+w7.increment(0.3138)
+backProp from o1 to h2 over connection w8 (error=0.6276)
+h2 delta=0.3295 beta=0.0470
+backProp from h2 to x1 over connection w3 (error=0.0470)
+x1 delta=0.0470, no beta as INPUT layer
+w3.increment(0.0470)
+backProp from h2 to x2 over connection w4 (error=0.0470)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.3295)
+backProp from o1 to h1 over connection w9 (error=0.6276)
+h1 delta=0.3605 beta=0.0307
+backProp from h1 to x1 over connection w1 (error=0.0307)
+x1 delta=0.0307, no beta as INPUT layer
+w1.increment(0.0307)
+w9.increment(0.3605)
+connections: w1=0.3307 w2=0.8276 w3=0.1470 w4=-0.2000 w5=0.2000 w6=0.2000 w7=0.1138 w8=0.6295 w9=0.5605
+-------------------
+epoch 1 pattern 2
+-------------------
+output: 1.7228
+backProp to o1 (error=-0.7228)
+o1 beta=-0.7228, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.7228)
+x1 delta=-0.7228, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.7228)
+x2 delta=-0.7228, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.7228)
+h3 delta=-0.3974 beta=-0.0204
+backProp from h3 to x2 over connection w6 (error=-0.0204)
+x2 delta=-0.0204, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.7228)
+h2 delta=-0.3518 beta=-0.1137
+backProp from h2 to x1 over connection w3 (error=-0.1137)
+x1 delta=-0.1137, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.1137)
+x2 delta=-0.1137, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.7228)
+h1 delta=-0.4206 beta=-0.0986
+backProp from h1 to x1 over connection w1 (error=-0.0986)
+x1 delta=-0.0986, no beta as INPUT layer
+connections: w1=0.2321 w2=0.1048 w3=0.0333 w4=-0.3137 w5=-0.5228 w6=0.1796 w7=-0.2836 w8=0.2777 w9=0.1399
+MSE: 0.4582
+-------------------
+epoch 2 pattern 1
+-------------------
+output: 0.1822
+backProp to o1 (error=0.8178)
+o1 beta=0.8178, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.8178)
+x1 delta=0.8178, no beta as INPUT layer
+w2.increment(0.8178)
+backProp from o1 to x2 over connection w5 (error=0.8178)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.8178)
+h3 delta=0.4089 beta=-0.0580
+backProp from h3 to x2 over connection w6 (error=-0.0580)
+x2 delta=-0.0000, no beta as INPUT layer
+w7.increment(0.4089)
+backProp from o1 to h2 over connection w8 (error=0.8178)
+h2 delta=0.4157 beta=0.0568
+backProp from h2 to x1 over connection w3 (error=0.0568)
+x1 delta=0.0568, no beta as INPUT layer
+w3.increment(0.0568)
+backProp from h2 to x2 over connection w4 (error=0.0568)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.4157)
+backProp from o1 to h1 over connection w9 (error=0.8178)
+h1 delta=0.4561 beta=0.0282
+backProp from h1 to x1 over connection w1 (error=0.0282)
+x1 delta=0.0282, no beta as INPUT layer
+w1.increment(0.0282)
+w9.increment(0.4561)
+connections: w1=0.2603 w2=0.9226 w3=0.0900 w4=-0.3137 w5=-0.5228 w6=0.1796 w7=0.1253 w8=0.6934 w9=0.5961
+-------------------
+epoch 2 pattern 2
+-------------------
+output: 1.1128
+backProp to o1 (error=-0.1128)
+o1 beta=-0.1128, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.1128)
+x1 delta=-0.1128, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.1128)
+x2 delta=-0.1128, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.1128)
+h3 delta=-0.0614 beta=-0.0035
+backProp from h3 to x2 over connection w6 (error=-0.0035)
+x2 delta=-0.0035, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.1128)
+h2 delta=-0.0501 beta=-0.0193
+backProp from h2 to x1 over connection w3 (error=-0.0193)
+x1 delta=-0.0193, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0193)
+x2 delta=-0.0193, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.1128)
+h1 delta=-0.0637 beta=-0.0165
+backProp from h1 to x1 over connection w1 (error=-0.0165)
+x1 delta=-0.0165, no beta as INPUT layer
+connections: w1=0.2438 w2=0.8098 w3=0.0707 w4=-0.3330 w5=-0.6355 w6=0.1761 w7=0.0639 w8=0.6433 w9=0.5324
+MSE: 0.3407
+-------------------
+epoch 3 pattern 1
+-------------------
+output: 1.4733
+backProp to o1 (error=-0.4733)
+o1 beta=-0.4733, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.4733)
+x1 delta=-0.4733, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.4733)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.4733)
+h3 delta=-0.2366 beta=-0.0076
+backProp from h3 to x2 over connection w6 (error=-0.0076)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.4733)
+h2 delta=-0.2450 beta=-0.0760
+backProp from h2 to x1 over connection w3 (error=-0.0760)
+x1 delta=-0.0760, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0760)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.4733)
+h1 delta=-0.2653 beta=-0.0621
+backProp from h1 to x1 over connection w1 (error=-0.0621)
+x1 delta=-0.0621, no beta as INPUT layer
+connections: w1=0.1818 w2=0.3366 w3=-0.0053 w4=-0.3330 w5=-0.6355 w6=0.1761 w7=-0.1728 w8=0.3983 w9=0.2670
+-------------------
+epoch 3 pattern 2
+-------------------
+output: -0.0815
+backProp to o1 (error=1.0815)
+o1 beta=1.0815, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=1.0815)
+x1 delta=1.0815, no beta as INPUT layer
+w2.increment(1.0815)
+backProp from o1 to x2 over connection w5 (error=1.0815)
+x2 delta=1.0815, no beta as INPUT layer
+w5.increment(1.0815)
+backProp from o1 to h3 over connection w7 (error=1.0815)
+h3 delta=0.5883 beta=-0.0464
+backProp from h3 to x2 over connection w6 (error=-0.0464)
+x2 delta=-0.0464, no beta as INPUT layer
+w7.increment(0.5883)
+backProp from o1 to h2 over connection w8 (error=1.0815)
+h2 delta=0.4502 beta=0.1047
+backProp from h2 to x1 over connection w3 (error=0.1047)
+x1 delta=0.1047, no beta as INPUT layer
+w3.increment(0.1047)
+backProp from h2 to x2 over connection w4 (error=0.1047)
+x2 delta=0.1047, no beta as INPUT layer
+w4.increment(0.1047)
+w8.increment(0.4502)
+backProp from o1 to h1 over connection w9 (error=1.0815)
+h1 delta=0.5898 beta=0.0716
+backProp from h1 to x1 over connection w1 (error=0.0716)
+x1 delta=0.0716, no beta as INPUT layer
+w1.increment(0.0716)
+w9.increment(0.5898)
+connections: w1=0.2534 w2=1.4181 w3=0.0994 w4=-0.2283 w5=0.4460 w6=0.1298 w7=0.4155 w8=0.8484 w9=0.8568
+MSE: 0.6968
+-------------------
+epoch 4 pattern 1
+-------------------
+output: 2.5535
+backProp to o1 (error=-1.5535)
+o1 beta=-1.5535, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-1.5535)
+x1 delta=-1.5535, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-1.5535)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-1.5535)
+h3 delta=-0.7768 beta=-0.1614
+backProp from h3 to x2 over connection w6 (error=-0.1614)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-1.5535)
+h2 delta=-0.8153 beta=-0.3287
+backProp from h2 to x1 over connection w3 (error=-0.3287)
+x1 delta=-0.3287, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.3287)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-1.5535)
+h1 delta=-0.8747 beta=-0.3275
+backProp from h1 to x1 over connection w1 (error=-0.3275)
+x1 delta=-0.3275, no beta as INPUT layer
+connections: w1=-0.0741 w2=-0.1354 w3=-0.2293 w4=-0.2283 w5=0.4460 w6=0.1298 w7=-0.3613 w8=0.0331 w9=-0.0178
+-------------------
+epoch 4 pattern 2
+-------------------
+output: 0.1225
+backProp to o1 (error=0.8775)
+o1 beta=0.8775, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.8775)
+x1 delta=0.8775, no beta as INPUT layer
+w2.increment(0.8775)
+backProp from o1 to x2 over connection w5 (error=0.8775)
+x2 delta=0.8775, no beta as INPUT layer
+w5.increment(0.8775)
+backProp from o1 to h3 over connection w7 (error=0.8775)
+h3 delta=0.4672 beta=-0.0789
+backProp from h3 to x2 over connection w6 (error=-0.0789)
+x2 delta=-0.0789, no beta as INPUT layer
+w7.increment(0.4672)
+backProp from o1 to h2 over connection w8 (error=0.8775)
+h2 delta=0.3401 beta=0.0069
+backProp from h2 to x1 over connection w3 (error=0.0069)
+x1 delta=0.0069, no beta as INPUT layer
+w3.increment(0.0069)
+backProp from h2 to x2 over connection w4 (error=0.0069)
+x2 delta=0.0069, no beta as INPUT layer
+w4.increment(0.0069)
+w8.increment(0.3401)
+backProp from o1 to h1 over connection w9 (error=0.8775)
+h1 delta=0.4225 beta=-0.0039
+backProp from h1 to x1 over connection w1 (error=-0.0039)
+x1 delta=-0.0039, no beta as INPUT layer
+w9.increment(0.4225)
+connections: w1=-0.0780 w2=0.7421 w3=-0.2224 w4=-0.2214 w5=1.3235 w6=0.0509 w7=0.1059 w8=0.3732 w9=0.4047
+MSE: 1.5918
+-------------------
+epoch 5 pattern 1
+-------------------
+output: 1.1555
+backProp to o1 (error=-0.1555)
+o1 beta=-0.1555, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.1555)
+x1 delta=-0.1555, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.1555)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.1555)
+h3 delta=-0.0777 beta=-0.0041
+backProp from h3 to x2 over connection w6 (error=-0.0041)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.1555)
+h2 delta=-0.0691 beta=-0.0143
+backProp from h2 to x1 over connection w3 (error=-0.0143)
+x1 delta=-0.0143, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0143)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.1555)
+h1 delta=-0.0747 beta=-0.0157
+backProp from h1 to x1 over connection w1 (error=-0.0157)
+x1 delta=-0.0157, no beta as INPUT layer
+connections: w1=-0.0937 w2=0.5867 w3=-0.2367 w4=-0.2214 w5=1.3235 w6=0.0509 w7=0.0282 w8=0.3041 w9=0.3300
+-------------------
+epoch 5 pattern 2
+-------------------
+output: 2.1997
+backProp to o1 (error=-1.1997)
+o1 beta=-1.1997, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-1.1997)
+x1 delta=-1.1997, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-1.1997)
+x2 delta=-1.1997, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-1.1997)
+h3 delta=-0.6151 beta=-0.0084
+backProp from h3 to x2 over connection w6 (error=-0.0084)
+x2 delta=-0.0084, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-1.1997)
+h2 delta=-0.4648 beta=-0.0866
+backProp from h2 to x1 over connection w3 (error=-0.0866)
+x1 delta=-0.0866, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0866)
+x2 delta=-0.0866, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-1.1997)
+h1 delta=-0.5718 beta=-0.0988
+backProp from h1 to x1 over connection w1 (error=-0.0988)
+x1 delta=-0.0988, no beta as INPUT layer
+connections: w1=-0.1925 w2=-0.6130 w3=-0.3233 w4=-0.3080 w5=0.1238 w6=0.0424 w7=-0.5869 w8=-0.1607 w9=-0.2418
+MSE: 0.7317
+-------------------
+epoch 6 pattern 1
+-------------------
+output: -1.0833
+backProp to o1 (error=2.0833)
+o1 beta=2.0833, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=2.0833)
+x1 delta=2.0833, no beta as INPUT layer
+w2.increment(2.0833)
+backProp from o1 to x2 over connection w5 (error=2.0833)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=2.0833)
+h3 delta=1.0416 beta=-0.3057
+backProp from h3 to x2 over connection w6 (error=-0.3057)
+x2 delta=-0.0000, no beta as INPUT layer
+w7.increment(1.0416)
+backProp from o1 to h2 over connection w8 (error=2.0833)
+h2 delta=0.8747 beta=-0.0816
+backProp from h2 to x1 over connection w3 (error=-0.0816)
+x1 delta=-0.0816, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0816)
+x2 delta=-0.0000, no beta as INPUT layer
+w8.increment(0.8747)
+backProp from o1 to h1 over connection w9 (error=2.0833)
+h1 delta=0.9417 beta=-0.1248
+backProp from h1 to x1 over connection w1 (error=-0.1248)
+x1 delta=-0.1248, no beta as INPUT layer
+w9.increment(0.9417)
+connections: w1=-0.3172 w2=1.4702 w3=-0.4049 w4=-0.3080 w5=0.1238 w6=0.0424 w7=0.4547 w8=0.7140 w9=0.6999
+-------------------
+epoch 6 pattern 2
+-------------------
+output: 2.3560
+backProp to o1 (error=-1.3560)
+o1 beta=-1.3560, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-1.3560)
+x1 delta=-1.3560, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-1.3560)
+x2 delta=-1.3560, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-1.3560)
+h3 delta=-0.6924 beta=-0.1541
+backProp from h3 to x2 over connection w6 (error=-0.1541)
+x2 delta=-0.1541, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-1.3560)
+h2 delta=-0.4461 beta=-0.2137
+backProp from h2 to x1 over connection w3 (error=-0.2137)
+x1 delta=-0.2137, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.2137)
+x2 delta=-0.2137, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-1.3560)
+h1 delta=-0.5714 beta=-0.2314
+backProp from h1 to x1 over connection w1 (error=-0.2314)
+x1 delta=-0.2314, no beta as INPUT layer
+connections: w1=-0.5486 w2=0.1142 w3=-0.6186 w4=-0.5217 w5=-1.2322 w6=-0.1117 w7=-0.2377 w8=0.2679 w9=0.1286
+MSE: 3.0894
+-------------------
+epoch 7 pattern 1
+-------------------
+output: 0.1363
+backProp to o1 (error=0.8637)
+o1 beta=0.8637, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.8637)
+x1 delta=0.8637, no beta as INPUT layer
+w2.increment(0.8637)
+backProp from o1 to x2 over connection w5 (error=0.8637)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.8637)
+h3 delta=0.4319 beta=-0.0513
+backProp from h3 to x2 over connection w6 (error=-0.0513)
+x2 delta=-0.0000, no beta as INPUT layer
+w7.increment(0.4319)
+backProp from o1 to h2 over connection w8 (error=0.8637)
+h2 delta=0.3024 beta=0.0526
+backProp from h2 to x1 over connection w3 (error=0.0526)
+x1 delta=0.0526, no beta as INPUT layer
+w3.increment(0.0526)
+backProp from h2 to x2 over connection w4 (error=0.0526)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.3024)
+backProp from o1 to h1 over connection w9 (error=0.8637)
+h1 delta=0.3163 beta=0.0258
+backProp from h1 to x1 over connection w1 (error=0.0258)
+x1 delta=0.0258, no beta as INPUT layer
+w1.increment(0.0258)
+w9.increment(0.3163)
+connections: w1=-0.5229 w2=0.9780 w3=-0.5660 w4=-0.5217 w5=-1.2322 w6=-0.1117 w7=0.1942 w8=0.5703 w9=0.4449
+-------------------
+epoch 7 pattern 2
+-------------------
+output: 0.1468
+backProp to o1 (error=0.8532)
+o1 beta=0.8532, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.8532)
+x1 delta=0.8532, no beta as INPUT layer
+w2.increment(0.8532)
+backProp from o1 to x2 over connection w5 (error=0.8532)
+x2 delta=0.8532, no beta as INPUT layer
+w5.increment(0.8532)
+backProp from o1 to h3 over connection w7 (error=0.8532)
+h3 delta=0.4028 beta=0.0413
+backProp from h3 to x2 over connection w6 (error=0.0413)
+x2 delta=0.0413, no beta as INPUT layer
+w6.increment(0.0413)
+w7.increment(0.4028)
+backProp from o1 to h2 over connection w8 (error=0.8532)
+h2 delta=0.2151 beta=0.0917
+backProp from h2 to x1 over connection w3 (error=0.0917)
+x1 delta=0.0917, no beta as INPUT layer
+w3.increment(0.0917)
+backProp from h2 to x2 over connection w4 (error=0.0917)
+x2 delta=0.0917, no beta as INPUT layer
+w4.increment(0.0917)
+w8.increment(0.2151)
+backProp from o1 to h1 over connection w9 (error=0.8532)
+h1 delta=0.3176 beta=0.0887
+backProp from h1 to x1 over connection w1 (error=0.0887)
+x1 delta=0.0887, no beta as INPUT layer
+w1.increment(0.0887)
+w9.increment(0.3176)
+connections: w1=-0.4342 w2=1.8312 w3=-0.4742 w4=-0.4300 w5=-0.3790 w6=-0.0704 w7=0.5970 w8=0.7854 w9=0.7624
+MSE: 0.7370
+-------------------
+epoch 8 pattern 1
+-------------------
+output: 2.7307
+backProp to o1 (error=-1.7307)
+o1 beta=-1.7307, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-1.7307)
+x1 delta=-1.7307, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-1.7307)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-1.7307)
+h3 delta=-0.8654 beta=-0.2583
+backProp from h3 to x2 over connection w6 (error=-0.2583)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-1.7307)
+h2 delta=-0.6639 beta=-0.3214
+backProp from h2 to x1 over connection w3 (error=-0.3214)
+x1 delta=-0.3214, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.3214)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-1.7307)
+h1 delta=-0.6804 beta=-0.3148
+backProp from h1 to x1 over connection w1 (error=-0.3148)
+x1 delta=-0.3148, no beta as INPUT layer
+connections: w1=-0.7490 w2=0.1005 w3=-0.7956 w4=-0.4300 w5=-0.3790 w6=-0.0704 w7=-0.2683 w8=0.1214 w9=0.0820
+-------------------
+epoch 8 pattern 2
+-------------------
+output: -0.3540
+backProp to o1 (error=1.3540)
+o1 beta=1.3540, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=1.3540)
+x1 delta=1.3540, no beta as INPUT layer
+w2.increment(1.3540)
+backProp from o1 to x2 over connection w5 (error=1.3540)
+x2 delta=1.3540, no beta as INPUT layer
+w5.increment(1.3540)
+backProp from o1 to h3 over connection w7 (error=1.3540)
+h3 delta=0.6532 beta=-0.0907
+backProp from h3 to x2 over connection w6 (error=-0.0907)
+x2 delta=-0.0907, no beta as INPUT layer
+w7.increment(0.6532)
+backProp from o1 to h2 over connection w8 (error=1.3540)
+h2 delta=0.3073 beta=0.0288
+backProp from h2 to x1 over connection w3 (error=0.0288)
+x1 delta=0.0288, no beta as INPUT layer
+w3.increment(0.0288)
+backProp from h2 to x2 over connection w4 (error=0.0288)
+x2 delta=0.0288, no beta as INPUT layer
+w4.increment(0.0288)
+w8.increment(0.3073)
+backProp from o1 to h1 over connection w9 (error=1.3540)
+h1 delta=0.4347 beta=0.0242
+backProp from h1 to x1 over connection w1 (error=0.0242)
+x1 delta=0.0242, no beta as INPUT layer
+w1.increment(0.0242)
+w9.increment(0.4347)
+connections: w1=-0.7248 w2=1.4545 w3=-0.7668 w4=-0.4011 w5=0.9751 w6=-0.1611 w7=0.3849 w8=0.4287 w9=0.5167
+MSE: 2.4144
+-------------------
+epoch 9 pattern 1
+-------------------
+output: 1.9516
+backProp to o1 (error=-0.9516)
+o1 beta=-0.9516, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.9516)
+x1 delta=-0.9516, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.9516)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.9516)
+h3 delta=-0.4758 beta=-0.0916
+backProp from h3 to x2 over connection w6 (error=-0.0916)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.9516)
+h2 delta=-0.3018 beta=-0.0884
+backProp from h2 to x1 over connection w3 (error=-0.0884)
+x1 delta=-0.0884, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0884)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.9516)
+h1 delta=-0.3105 beta=-0.1081
+backProp from h1 to x1 over connection w1 (error=-0.1081)
+x1 delta=-0.1081, no beta as INPUT layer
+connections: w1=-0.8329 w2=0.5029 w3=-0.8551 w4=-0.4011 w5=0.9751 w6=-0.1611 w7=-0.0909 w8=0.1269 w9=0.2062
+-------------------
+epoch 9 pattern 2
+-------------------
+output: 1.5268
+backProp to o1 (error=-0.5268)
+o1 beta=-0.5268, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.5268)
+x1 delta=-0.5268, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.5268)
+x2 delta=-0.5268, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.5268)
+h3 delta=-0.2422 beta=0.0119
+backProp from h3 to x2 over connection w6 (error=0.0119)
+x2 delta=0.0119, no beta as INPUT layer
+w6.increment(0.0119)
+backProp from o1 to h2 over connection w8 (error=-0.5268)
+h2 delta=-0.1168 beta=-0.0115
+backProp from h2 to x1 over connection w3 (error=-0.0115)
+x1 delta=-0.0115, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0115)
+x2 delta=-0.0115, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.5268)
+h1 delta=-0.1596 beta=-0.0229
+backProp from h1 to x1 over connection w1 (error=-0.0229)
+x1 delta=-0.0229, no beta as INPUT layer
+connections: w1=-0.8558 w2=-0.0239 w3=-0.8667 w4=-0.4127 w5=0.4482 w6=-0.1492 w7=-0.3331 w8=0.0102 w9=0.0465
+MSE: 0.5915
+-------------------
+epoch 10 pattern 1
+-------------------
+output: -0.1736
+backProp to o1 (error=1.1736)
+o1 beta=1.1736, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=1.1736)
+x1 delta=1.1736, no beta as INPUT layer
+w2.increment(1.1736)
+backProp from o1 to x2 over connection w5 (error=1.1736)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=1.1736)
+h3 delta=0.5868 beta=-0.0977
+backProp from h3 to x2 over connection w6 (error=-0.0977)
+x2 delta=-0.0000, no beta as INPUT layer
+w7.increment(0.5868)
+backProp from o1 to h2 over connection w8 (error=1.1736)
+h2 delta=0.3473 beta=0.0025
+backProp from h2 to x1 over connection w3 (error=0.0025)
+x1 delta=0.0025, no beta as INPUT layer
+w3.increment(0.0025)
+backProp from h2 to x2 over connection w4 (error=0.0025)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.3473)
+backProp from o1 to h1 over connection w9 (error=1.1736)
+h1 delta=0.3500 beta=0.0114
+backProp from h1 to x1 over connection w1 (error=0.0114)
+x1 delta=0.0114, no beta as INPUT layer
+w1.increment(0.0114)
+w9.increment(0.3500)
+connections: w1=-0.8444 w2=1.1497 w3=-0.8642 w4=-0.4127 w5=0.4482 w6=-0.1492 w7=0.2536 w8=0.3575 w9=0.3965
+-------------------
+epoch 10 pattern 2
+-------------------
+output: 1.9125
+backProp to o1 (error=-0.9125)
+o1 beta=-0.9125, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.9125)
+x1 delta=-0.9125, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.9125)
+x2 delta=-0.9125, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.9125)
+h3 delta=-0.4223 beta=-0.0575
+backProp from h3 to x2 over connection w6 (error=-0.0575)
+x2 delta=-0.0575, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.9125)
+h2 delta=-0.1990 beta=-0.0556
+backProp from h2 to x1 over connection w3 (error=-0.0556)
+x1 delta=-0.0556, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0556)
+x2 delta=-0.0556, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.9125)
+h1 delta=-0.2743 beta=-0.0761
+backProp from h1 to x1 over connection w1 (error=-0.0761)
+x1 delta=-0.0761, no beta as INPUT layer
+connections: w1=-0.9205 w2=0.2372 w3=-0.9198 w4=-0.4683 w5=-0.4642 w6=-0.2067 w7=-0.1686 w8=0.1585 w9=0.1222
+MSE: 1.1049
+-------------------
+epoch 11 pattern 1
+-------------------
+output: 0.2329
+backProp to o1 (error=0.7671)
+o1 beta=0.7671, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.7671)
+x1 delta=0.7671, no beta as INPUT layer
+w2.increment(0.7671)
+backProp from o1 to x2 over connection w5 (error=0.7671)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.7671)
+h3 delta=0.3836 beta=-0.0323
+backProp from h3 to x2 over connection w6 (error=-0.0323)
+x2 delta=-0.0000, no beta as INPUT layer
+w7.increment(0.3836)
+backProp from o1 to h2 over connection w8 (error=0.7671)
+h2 delta=0.2186 beta=0.0248
+backProp from h2 to x1 over connection w3 (error=0.0248)
+x1 delta=0.0248, no beta as INPUT layer
+w3.increment(0.0248)
+backProp from h2 to x2 over connection w4 (error=0.0248)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.2186)
+backProp from o1 to h1 over connection w9 (error=0.7671)
+h1 delta=0.2185 beta=0.0191
+backProp from h1 to x1 over connection w1 (error=0.0191)
+x1 delta=0.0191, no beta as INPUT layer
+w1.increment(0.0191)
+w9.increment(0.2185)
+connections: w1=-0.9014 w2=1.0043 w3=-0.8950 w4=-0.4683 w5=-0.4642 w6=-0.2067 w7=0.2149 w8=0.3771 w9=0.3407
+-------------------
+epoch 11 pattern 2
+-------------------
+output: 0.8117
+backProp to o1 (error=0.1883)
+o1 beta=0.1883, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.1883)
+x1 delta=0.1883, no beta as INPUT layer
+w2.increment(0.1883)
+backProp from o1 to x2 over connection w5 (error=0.1883)
+x2 delta=0.1883, no beta as INPUT layer
+w5.increment(0.1883)
+backProp from o1 to h3 over connection w7 (error=0.1883)
+h3 delta=0.0844 beta=0.0100
+backProp from h3 to x2 over connection w6 (error=0.0100)
+x2 delta=0.0100, no beta as INPUT layer
+w6.increment(0.0100)
+w7.increment(0.0844)
+backProp from o1 to h2 over connection w8 (error=0.1883)
+h2 delta=0.0384 beta=0.0115
+backProp from h2 to x1 over connection w3 (error=0.0115)
+x1 delta=0.0115, no beta as INPUT layer
+w3.increment(0.0115)
+backProp from h2 to x2 over connection w4 (error=0.0115)
+x2 delta=0.0115, no beta as INPUT layer
+w4.increment(0.0115)
+w8.increment(0.0384)
+backProp from o1 to h1 over connection w9 (error=0.1883)
+h1 delta=0.0544 beta=0.0132
+backProp from h1 to x1 over connection w1 (error=0.0132)
+x1 delta=0.0132, no beta as INPUT layer
+w1.increment(0.0132)
+w9.increment(0.0544)
+connections: w1=-0.8882 w2=1.1926 w3=-0.8835 w4=-0.4568 w5=-0.2759 w6=-0.1967 w7=0.2994 w8=0.4155 w9=0.3951
+MSE: 0.3120
+-------------------
+epoch 12 pattern 1
+-------------------
+output: 1.5790
+backProp to o1 (error=-0.5790)
+o1 beta=-0.5790, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.5790)
+x1 delta=-0.5790, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.5790)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.5790)
+h3 delta=-0.2895 beta=-0.0433
+backProp from h3 to x2 over connection w6 (error=-0.0433)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.5790)
+h2 delta=-0.1693 beta=-0.0498
+backProp from h2 to x1 over connection w3 (error=-0.0498)
+x1 delta=-0.0498, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0498)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.5790)
+h1 delta=-0.1688 beta=-0.0472
+backProp from h1 to x1 over connection w1 (error=-0.0472)
+x1 delta=-0.0472, no beta as INPUT layer
+connections: w1=-0.9354 w2=0.6136 w3=-0.9333 w4=-0.4568 w5=-0.2759 w6=-0.1967 w7=0.0099 w8=0.2461 w9=0.2263
+-------------------
+epoch 12 pattern 2
+-------------------
+output: 0.4550
+backProp to o1 (error=0.5450)
+o1 beta=0.5450, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.5450)
+x1 delta=0.5450, no beta as INPUT layer
+w2.increment(0.5450)
+backProp from o1 to x2 over connection w5 (error=0.5450)
+x2 delta=0.5450, no beta as INPUT layer
+w5.increment(0.5450)
+backProp from o1 to h3 over connection w7 (error=0.5450)
+h3 delta=0.2458 beta=0.0013
+backProp from h3 to x2 over connection w6 (error=0.0013)
+x2 delta=0.0013, no beta as INPUT layer
+w6.increment(0.0013)
+w7.increment(0.2458)
+backProp from o1 to h2 over connection w8 (error=0.5450)
+h2 delta=0.1087 beta=0.0214
+backProp from h2 to x1 over connection w3 (error=0.0214)
+x1 delta=0.0214, no beta as INPUT layer
+w3.increment(0.0214)
+backProp from h2 to x2 over connection w4 (error=0.0214)
+x2 delta=0.0214, no beta as INPUT layer
+w4.increment(0.0214)
+w8.increment(0.1087)
+backProp from o1 to h1 over connection w9 (error=0.5450)
+h1 delta=0.1536 beta=0.0250
+backProp from h1 to x1 over connection w1 (error=0.0250)
+x1 delta=0.0250, no beta as INPUT layer
+w1.increment(0.0250)
+w9.increment(0.1536)
+connections: w1=-0.9105 w2=1.1586 w3=-0.9119 w4=-0.4354 w5=0.2690 w6=-0.1954 w7=0.2557 w8=0.3548 w9=0.3799
+MSE: 0.3161
+-------------------
+epoch 13 pattern 1
+-------------------
+output: 1.4971
+backProp to o1 (error=-0.4971)
+o1 beta=-0.4971, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.4971)
+x1 delta=-0.4971, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.4971)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.4971)
+h3 delta=-0.2486 beta=-0.0318
+backProp from h3 to x2 over connection w6 (error=-0.0318)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.4971)
+h2 delta=-0.1425 beta=-0.0361
+backProp from h2 to x1 over connection w3 (error=-0.0361)
+x1 delta=-0.0361, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0361)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.4971)
+h1 delta=-0.1426 beta=-0.0386
+backProp from h1 to x1 over connection w1 (error=-0.0386)
+x1 delta=-0.0386, no beta as INPUT layer
+connections: w1=-0.9491 w2=0.6615 w3=-0.9479 w4=-0.4354 w5=0.2690 w6=-0.1954 w7=0.0071 w8=0.2123 w9=0.2373
+-------------------
+epoch 13 pattern 2
+-------------------
+output: 1.0425
+backProp to o1 (error=-0.0425)
+o1 beta=-0.0425, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0425)
+x1 delta=-0.0425, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0425)
+x2 delta=-0.0425, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0425)
+h3 delta=-0.0192 beta=-0.0001
+backProp from h3 to x2 over connection w6 (error=-0.0001)
+x2 delta=-0.0001, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0425)
+h2 delta=-0.0085 beta=-0.0014
+backProp from h2 to x1 over connection w3 (error=-0.0014)
+x1 delta=-0.0014, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0014)
+x2 delta=-0.0014, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0425)
+h1 delta=-0.0119 beta=-0.0020
+backProp from h1 to x1 over connection w1 (error=-0.0020)
+x1 delta=-0.0020, no beta as INPUT layer
+connections: w1=-0.9511 w2=0.6190 w3=-0.9494 w4=-0.4368 w5=0.2265 w6=-0.1955 w7=-0.0121 w8=0.2038 w9=0.2254
+MSE: 0.1245
+-------------------
+epoch 14 pattern 1
+-------------------
+output: 0.7326
+backProp to o1 (error=0.2674)
+o1 beta=0.2674, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.2674)
+x1 delta=0.2674, no beta as INPUT layer
+w2.increment(0.2674)
+backProp from o1 to x2 over connection w5 (error=0.2674)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.2674)
+h3 delta=0.1337 beta=-0.0008
+backProp from h3 to x2 over connection w6 (error=-0.0008)
+x2 delta=-0.0000, no beta as INPUT layer
+w7.increment(0.1337)
+backProp from o1 to h2 over connection w8 (error=0.2674)
+h2 delta=0.0746 beta=0.0110
+backProp from h2 to x1 over connection w3 (error=0.0110)
+x1 delta=0.0110, no beta as INPUT layer
+w3.increment(0.0110)
+backProp from h2 to x2 over connection w4 (error=0.0110)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.0746)
+backProp from o1 to h1 over connection w9 (error=0.2674)
+h1 delta=0.0745 beta=0.0121
+backProp from h1 to x1 over connection w1 (error=0.0121)
+x1 delta=0.0121, no beta as INPUT layer
+w1.increment(0.0121)
+w9.increment(0.0745)
+connections: w1=-0.9390 w2=0.8864 w3=-0.9384 w4=-0.4368 w5=0.2265 w6=-0.1955 w7=0.1216 w8=0.2784 w9=0.2999
+-------------------
+epoch 14 pattern 2
+-------------------
+output: 1.3083
+backProp to o1 (error=-0.3083)
+o1 beta=-0.3083, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.3083)
+x1 delta=-0.3083, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.3083)
+x2 delta=-0.3083, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.3083)
+h3 delta=-0.1391 beta=-0.0093
+backProp from h3 to x2 over connection w6 (error=-0.0093)
+x2 delta=-0.0093, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.3083)
+h2 delta=-0.0622 beta=-0.0138
+backProp from h2 to x1 over connection w3 (error=-0.0138)
+x1 delta=-0.0138, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0138)
+x2 delta=-0.0138, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.3083)
+h1 delta=-0.0867 beta=-0.0187
+backProp from h1 to x1 over connection w1 (error=-0.0187)
+x1 delta=-0.0187, no beta as INPUT layer
+connections: w1=-0.9577 w2=0.5781 w3=-0.9522 w4=-0.4506 w5=-0.0817 w6=-0.2048 w7=-0.0175 w8=0.2162 w9=0.2133
+MSE: 0.0833
+-------------------
+epoch 15 pattern 1
+-------------------
+output: 0.6887
+backProp to o1 (error=0.3113)
+o1 beta=0.3113, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.3113)
+x1 delta=0.3113, no beta as INPUT layer
+w2.increment(0.3113)
+backProp from o1 to x2 over connection w5 (error=0.3113)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.3113)
+h3 delta=0.1557 beta=-0.0014
+backProp from h3 to x2 over connection w6 (error=-0.0014)
+x2 delta=-0.0000, no beta as INPUT layer
+w7.increment(0.1557)
+backProp from o1 to h2 over connection w8 (error=0.3113)
+h2 delta=0.0867 beta=0.0135
+backProp from h2 to x1 over connection w3 (error=0.0135)
+x1 delta=0.0135, no beta as INPUT layer
+w3.increment(0.0135)
+backProp from h2 to x2 over connection w4 (error=0.0135)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.0867)
+backProp from o1 to h1 over connection w9 (error=0.3113)
+h1 delta=0.0863 beta=0.0133
+backProp from h1 to x1 over connection w1 (error=0.0133)
+x1 delta=0.0133, no beta as INPUT layer
+w1.increment(0.0133)
+w9.increment(0.0863)
+connections: w1=-0.9444 w2=0.8894 w3=-0.9387 w4=-0.4506 w5=-0.0817 w6=-0.2048 w7=0.1381 w8=0.3029 w9=0.2996
+-------------------
+epoch 15 pattern 2
+-------------------
+output: 1.0140
+backProp to o1 (error=-0.0140)
+o1 beta=-0.0140, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0140)
+x1 delta=-0.0140, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0140)
+x2 delta=-0.0140, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0140)
+h3 delta=-0.0063 beta=-0.0005
+backProp from h3 to x2 over connection w6 (error=-0.0005)
+x2 delta=-0.0005, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0140)
+h2 delta=-0.0028 beta=-0.0007
+backProp from h2 to x1 over connection w3 (error=-0.0007)
+x1 delta=-0.0007, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0007)
+x2 delta=-0.0007, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0140)
+h1 delta=-0.0039 beta=-0.0008
+backProp from h1 to x1 over connection w1 (error=-0.0008)
+x1 delta=-0.0008, no beta as INPUT layer
+connections: w1=-0.9452 w2=0.8754 w3=-0.9394 w4=-0.4513 w5=-0.0958 w6=-0.2052 w7=0.1318 w8=0.3001 w9=0.2957
+MSE: 0.0486
+-------------------
+epoch 16 pattern 1
+-------------------
+output: 1.1084
+backProp to o1 (error=-0.1084)
+o1 beta=-0.1084, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.1084)
+x1 delta=-0.1084, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.1084)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.1084)
+h3 delta=-0.0542 beta=-0.0036
+backProp from h3 to x2 over connection w6 (error=-0.0036)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.1084)
+h2 delta=-0.0305 beta=-0.0066
+backProp from h2 to x1 over connection w3 (error=-0.0066)
+x1 delta=-0.0066, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0066)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.1084)
+h1 delta=-0.0303 beta=-0.0065
+backProp from h1 to x1 over connection w1 (error=-0.0065)
+x1 delta=-0.0065, no beta as INPUT layer
+connections: w1=-0.9517 w2=0.7670 w3=-0.9460 w4=-0.4513 w5=-0.0958 w6=-0.2052 w7=0.0777 w8=0.2696 w9=0.2654
+-------------------
+epoch 16 pattern 2
+-------------------
+output: 0.8335
+backProp to o1 (error=0.1665)
+o1 beta=0.1665, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.1665)
+x1 delta=0.1665, no beta as INPUT layer
+w2.increment(0.1665)
+backProp from o1 to x2 over connection w5 (error=0.1665)
+x2 delta=0.1665, no beta as INPUT layer
+w5.increment(0.1665)
+backProp from o1 to h3 over connection w7 (error=0.1665)
+h3 delta=0.0748 beta=0.0032
+backProp from h3 to x2 over connection w6 (error=0.0032)
+x2 delta=0.0032, no beta as INPUT layer
+w6.increment(0.0032)
+w7.increment(0.0748)
+backProp from o1 to h2 over connection w8 (error=0.1665)
+h2 delta=0.0330 beta=0.0071
+backProp from h2 to x1 over connection w3 (error=0.0071)
+x1 delta=0.0071, no beta as INPUT layer
+w3.increment(0.0071)
+backProp from h2 to x2 over connection w4 (error=0.0071)
+x2 delta=0.0071, no beta as INPUT layer
+w4.increment(0.0071)
+w8.increment(0.0330)
+backProp from o1 to h1 over connection w9 (error=0.1665)
+h1 delta=0.0464 beta=0.0089
+backProp from h1 to x1 over connection w1 (error=0.0089)
+x1 delta=0.0089, no beta as INPUT layer
+w1.increment(0.0089)
+w9.increment(0.0464)
+connections: w1=-0.9428 w2=0.9335 w3=-0.9388 w4=-0.4442 w5=0.0708 w6=-0.2020 w7=0.1524 w8=0.3026 w9=0.3118
+MSE: 0.0197
+-------------------
+epoch 17 pattern 1
+-------------------
+output: 1.1822
+backProp to o1 (error=-0.1822)
+o1 beta=-0.1822, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.1822)
+x1 delta=-0.1822, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.1822)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.1822)
+h3 delta=-0.0911 beta=-0.0069
+backProp from h3 to x2 over connection w6 (error=-0.0069)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.1822)
+h2 delta=-0.0512 beta=-0.0111
+backProp from h2 to x1 over connection w3 (error=-0.0111)
+x1 delta=-0.0111, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0111)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.1822)
+h1 delta=-0.0511 beta=-0.0115
+backProp from h1 to x1 over connection w1 (error=-0.0115)
+x1 delta=-0.0115, no beta as INPUT layer
+connections: w1=-0.9543 w2=0.7513 w3=-0.9500 w4=-0.4442 w5=0.0708 w6=-0.2020 w7=0.0613 w8=0.2514 w9=0.2607
+-------------------
+epoch 17 pattern 2
+-------------------
+output: 0.9721
+backProp to o1 (error=0.0279)
+o1 beta=0.0279, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0279)
+x1 delta=0.0279, no beta as INPUT layer
+w2.increment(0.0279)
+backProp from o1 to x2 over connection w5 (error=0.0279)
+x2 delta=0.0279, no beta as INPUT layer
+w5.increment(0.0279)
+backProp from o1 to h3 over connection w7 (error=0.0279)
+h3 delta=0.0125 beta=0.0004
+backProp from h3 to x2 over connection w6 (error=0.0004)
+x2 delta=0.0004, no beta as INPUT layer
+w6.increment(0.0004)
+w7.increment(0.0125)
+backProp from o1 to h2 over connection w8 (error=0.0279)
+h2 delta=0.0055 beta=0.0011
+backProp from h2 to x1 over connection w3 (error=0.0011)
+x1 delta=0.0011, no beta as INPUT layer
+w3.increment(0.0011)
+backProp from h2 to x2 over connection w4 (error=0.0011)
+x2 delta=0.0011, no beta as INPUT layer
+w4.increment(0.0011)
+w8.increment(0.0055)
+backProp from o1 to h1 over connection w9 (error=0.0279)
+h1 delta=0.0078 beta=0.0015
+backProp from h1 to x1 over connection w1 (error=0.0015)
+x1 delta=0.0015, no beta as INPUT layer
+w1.increment(0.0015)
+w9.increment(0.0078)
+connections: w1=-0.9528 w2=0.7792 w3=-0.9489 w4=-0.4430 w5=0.0987 w6=-0.2016 w7=0.0739 w8=0.2570 w9=0.2684
+MSE: 0.0170
+-------------------
+epoch 18 pattern 1
+-------------------
+output: 0.9626
+backProp to o1 (error=0.0374)
+o1 beta=0.0374, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0374)
+x1 delta=0.0374, no beta as INPUT layer
+w2.increment(0.0374)
+backProp from o1 to x2 over connection w5 (error=0.0374)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.0374)
+h3 delta=0.0187 beta=0.0007
+backProp from h3 to x2 over connection w6 (error=0.0007)
+x2 delta=0.0000, no beta as INPUT layer
+w7.increment(0.0187)
+backProp from o1 to h2 over connection w8 (error=0.0374)
+h2 delta=0.0104 beta=0.0019
+backProp from h2 to x1 over connection w3 (error=0.0019)
+x1 delta=0.0019, no beta as INPUT layer
+w3.increment(0.0019)
+backProp from h2 to x2 over connection w4 (error=0.0019)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.0104)
+backProp from o1 to h1 over connection w9 (error=0.0374)
+h1 delta=0.0104 beta=0.0020
+backProp from h1 to x1 over connection w1 (error=0.0020)
+x1 delta=0.0020, no beta as INPUT layer
+w1.increment(0.0020)
+w9.increment(0.0104)
+connections: w1=-0.9508 w2=0.8166 w3=-0.9469 w4=-0.4430 w5=0.0987 w6=-0.2016 w7=0.0926 w8=0.2674 w9=0.2789
+-------------------
+epoch 18 pattern 2
+-------------------
+output: 1.0880
+backProp to o1 (error=-0.0880)
+o1 beta=-0.0880, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0880)
+x1 delta=-0.0880, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0880)
+x2 delta=-0.0880, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0880)
+h3 delta=-0.0396 beta=-0.0020
+backProp from h3 to x2 over connection w6 (error=-0.0020)
+x2 delta=-0.0020, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0880)
+h2 delta=-0.0175 beta=-0.0038
+backProp from h2 to x1 over connection w3 (error=-0.0038)
+x1 delta=-0.0038, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0038)
+x2 delta=-0.0038, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0880)
+h1 delta=-0.0245 beta=-0.0049
+backProp from h1 to x1 over connection w1 (error=-0.0049)
+x1 delta=-0.0049, no beta as INPUT layer
+connections: w1=-0.9557 w2=0.7286 w3=-0.9507 w4=-0.4468 w5=0.0107 w6=-0.2036 w7=0.0530 w8=0.2498 w9=0.2543
+MSE: 0.0046
+-------------------
+epoch 19 pattern 1
+-------------------
+output: 0.8954
+backProp to o1 (error=0.1046)
+o1 beta=0.1046, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.1046)
+x1 delta=0.1046, no beta as INPUT layer
+w2.increment(0.1046)
+backProp from o1 to x2 over connection w5 (error=0.1046)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.1046)
+h3 delta=0.0523 beta=0.0014
+backProp from h3 to x2 over connection w6 (error=0.0014)
+x2 delta=0.0000, no beta as INPUT layer
+w7.increment(0.0523)
+backProp from o1 to h2 over connection w8 (error=0.1046)
+h2 delta=0.0292 beta=0.0053
+backProp from h2 to x1 over connection w3 (error=0.0053)
+x1 delta=0.0053, no beta as INPUT layer
+w3.increment(0.0053)
+backProp from h2 to x2 over connection w4 (error=0.0053)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.0292)
+backProp from o1 to h1 over connection w9 (error=0.1046)
+h1 delta=0.0290 beta=0.0053
+backProp from h1 to x1 over connection w1 (error=0.0053)
+x1 delta=0.0053, no beta as INPUT layer
+w1.increment(0.0053)
+w9.increment(0.0290)
+connections: w1=-0.9504 w2=0.8332 w3=-0.9454 w4=-0.4468 w5=0.0107 w6=-0.2036 w7=0.1053 w8=0.2790 w9=0.2834
+-------------------
+epoch 19 pattern 2
+-------------------
+output: 1.0257
+backProp to o1 (error=-0.0257)
+o1 beta=-0.0257, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0257)
+x1 delta=-0.0257, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0257)
+x2 delta=-0.0257, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0257)
+h3 delta=-0.0116 beta=-0.0007
+backProp from h3 to x2 over connection w6 (error=-0.0007)
+x2 delta=-0.0007, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0257)
+h2 delta=-0.0051 beta=-0.0011
+backProp from h2 to x1 over connection w3 (error=-0.0011)
+x1 delta=-0.0011, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0011)
+x2 delta=-0.0011, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0257)
+h1 delta=-0.0072 beta=-0.0015
+backProp from h1 to x1 over connection w1 (error=-0.0015)
+x1 delta=-0.0015, no beta as INPUT layer
+connections: w1=-0.9519 w2=0.8075 w3=-0.9466 w4=-0.4479 w5=-0.0151 w6=-0.2043 w7=0.0937 w8=0.2739 w9=0.2762
+MSE: 0.0058
+-------------------
+epoch 20 pattern 1
+-------------------
+output: 1.0078
+backProp to o1 (error=-0.0078)
+o1 beta=-0.0078, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0078)
+x1 delta=-0.0078, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0078)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0078)
+h3 delta=-0.0039 beta=-0.0002
+backProp from h3 to x2 over connection w6 (error=-0.0002)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0078)
+h2 delta=-0.0022 beta=-0.0004
+backProp from h2 to x1 over connection w3 (error=-0.0004)
+x1 delta=-0.0004, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0004)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0078)
+h1 delta=-0.0022 beta=-0.0004
+backProp from h1 to x1 over connection w1 (error=-0.0004)
+x1 delta=-0.0004, no beta as INPUT layer
+connections: w1=-0.9523 w2=0.7997 w3=-0.9470 w4=-0.4479 w5=-0.0151 w6=-0.2043 w7=0.0898 w8=0.2717 w9=0.2740
+-------------------
+epoch 20 pattern 2
+-------------------
+output: 0.9552
+backProp to o1 (error=0.0448)
+o1 beta=0.0448, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0448)
+x1 delta=0.0448, no beta as INPUT layer
+w2.increment(0.0448)
+backProp from o1 to x2 over connection w5 (error=0.0448)
+x2 delta=0.0448, no beta as INPUT layer
+w5.increment(0.0448)
+backProp from o1 to h3 over connection w7 (error=0.0448)
+h3 delta=0.0201 beta=0.0010
+backProp from h3 to x2 over connection w6 (error=0.0010)
+x2 delta=0.0010, no beta as INPUT layer
+w6.increment(0.0010)
+w7.increment(0.0201)
+backProp from o1 to h2 over connection w8 (error=0.0448)
+h2 delta=0.0089 beta=0.0019
+backProp from h2 to x1 over connection w3 (error=0.0019)
+x1 delta=0.0019, no beta as INPUT layer
+w3.increment(0.0019)
+backProp from h2 to x2 over connection w4 (error=0.0019)
+x2 delta=0.0019, no beta as INPUT layer
+w4.increment(0.0019)
+w8.increment(0.0089)
+backProp from o1 to h1 over connection w9 (error=0.0448)
+h1 delta=0.0125 beta=0.0025
+backProp from h1 to x1 over connection w1 (error=0.0025)
+x1 delta=0.0025, no beta as INPUT layer
+w1.increment(0.0025)
+w9.increment(0.0125)
+connections: w1=-0.9498 w2=0.8445 w3=-0.9451 w4=-0.4460 w5=0.0298 w6=-0.2033 w7=0.1099 w8=0.2806 w9=0.2865
+MSE: 0.0010
+-------------------
+epoch 21 pattern 1
+-------------------
+output: 1.0579
+backProp to o1 (error=-0.0579)
+o1 beta=-0.0579, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0579)
+x1 delta=-0.0579, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0579)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0579)
+h3 delta=-0.0289 beta=-0.0016
+backProp from h3 to x2 over connection w6 (error=-0.0016)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0579)
+h2 delta=-0.0162 beta=-0.0033
+backProp from h2 to x1 over connection w3 (error=-0.0033)
+x1 delta=-0.0033, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0033)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0579)
+h1 delta=-0.0161 beta=-0.0033
+backProp from h1 to x1 over connection w1 (error=-0.0033)
+x1 delta=-0.0033, no beta as INPUT layer
+connections: w1=-0.9532 w2=0.7866 w3=-0.9483 w4=-0.4460 w5=0.0298 w6=-0.2033 w7=0.0810 w8=0.2644 w9=0.2704
+-------------------
+epoch 21 pattern 2
+-------------------
+output: 0.9805
+backProp to o1 (error=0.0195)
+o1 beta=0.0195, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0195)
+x1 delta=0.0195, no beta as INPUT layer
+w2.increment(0.0195)
+backProp from o1 to x2 over connection w5 (error=0.0195)
+x2 delta=0.0195, no beta as INPUT layer
+w5.increment(0.0195)
+backProp from o1 to h3 over connection w7 (error=0.0195)
+h3 delta=0.0088 beta=0.0004
+backProp from h3 to x2 over connection w6 (error=0.0004)
+x2 delta=0.0004, no beta as INPUT layer
+w6.increment(0.0004)
+w7.increment(0.0088)
+backProp from o1 to h2 over connection w8 (error=0.0195)
+h2 delta=0.0039 beta=0.0008
+backProp from h2 to x1 over connection w3 (error=0.0008)
+x1 delta=0.0008, no beta as INPUT layer
+w3.increment(0.0008)
+backProp from h2 to x2 over connection w4 (error=0.0008)
+x2 delta=0.0008, no beta as INPUT layer
+w4.increment(0.0008)
+w8.increment(0.0039)
+backProp from o1 to h1 over connection w9 (error=0.0195)
+h1 delta=0.0054 beta=0.0011
+backProp from h1 to x1 over connection w1 (error=0.0011)
+x1 delta=0.0011, no beta as INPUT layer
+w1.increment(0.0011)
+w9.increment(0.0054)
+connections: w1=-0.9521 w2=0.8061 w3=-0.9475 w4=-0.4452 w5=0.0493 w6=-0.2029 w7=0.0897 w8=0.2683 w9=0.2758
+MSE: 0.0019
+-------------------
+epoch 22 pattern 1
+-------------------
+output: 1.0027
+backProp to o1 (error=-0.0027)
+o1 beta=-0.0027, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0027)
+x1 delta=-0.0027, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0027)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0027)
+h3 delta=-0.0013 beta=-0.0001
+backProp from h3 to x2 over connection w6 (error=-0.0001)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0027)
+h2 delta=-0.0008 beta=-0.0001
+backProp from h2 to x1 over connection w3 (error=-0.0001)
+x1 delta=-0.0001, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0001)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0027)
+h1 delta=-0.0007 beta=-0.0001
+backProp from h1 to x1 over connection w1 (error=-0.0001)
+x1 delta=-0.0001, no beta as INPUT layer
+connections: w1=-0.9523 w2=0.8034 w3=-0.9477 w4=-0.4452 w5=0.0493 w6=-0.2029 w7=0.0884 w8=0.2675 w9=0.2750
+-------------------
+epoch 22 pattern 2
+-------------------
+output: 1.0222
+backProp to o1 (error=-0.0222)
+o1 beta=-0.0222, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0222)
+x1 delta=-0.0222, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0222)
+x2 delta=-0.0222, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0222)
+h3 delta=-0.0100 beta=-0.0005
+backProp from h3 to x2 over connection w6 (error=-0.0005)
+x2 delta=-0.0005, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0222)
+h2 delta=-0.0044 beta=-0.0009
+backProp from h2 to x1 over connection w3 (error=-0.0009)
+x1 delta=-0.0009, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0009)
+x2 delta=-0.0009, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0222)
+h1 delta=-0.0062 beta=-0.0012
+backProp from h1 to x1 over connection w1 (error=-0.0012)
+x1 delta=-0.0012, no beta as INPUT layer
+connections: w1=-0.9535 w2=0.7812 w3=-0.9486 w4=-0.4461 w5=0.0271 w6=-0.2034 w7=0.0784 w8=0.2631 w9=0.2689
+MSE: 0.0002
+-------------------
+epoch 23 pattern 1
+-------------------
+output: 0.9687
+backProp to o1 (error=0.0313)
+o1 beta=0.0313, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0313)
+x1 delta=0.0313, no beta as INPUT layer
+w2.increment(0.0313)
+backProp from o1 to x2 over connection w5 (error=0.0313)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.0313)
+h3 delta=0.0157 beta=0.0006
+backProp from h3 to x2 over connection w6 (error=0.0006)
+x2 delta=0.0000, no beta as INPUT layer
+w7.increment(0.0157)
+backProp from o1 to h2 over connection w8 (error=0.0313)
+h2 delta=0.0087 beta=0.0017
+backProp from h2 to x1 over connection w3 (error=0.0017)
+x1 delta=0.0017, no beta as INPUT layer
+w3.increment(0.0017)
+backProp from h2 to x2 over connection w4 (error=0.0017)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.0087)
+backProp from o1 to h1 over connection w9 (error=0.0313)
+h1 delta=0.0087 beta=0.0017
+backProp from h1 to x1 over connection w1 (error=0.0017)
+x1 delta=0.0017, no beta as INPUT layer
+w1.increment(0.0017)
+w9.increment(0.0087)
+connections: w1=-0.9518 w2=0.8125 w3=-0.9469 w4=-0.4461 w5=0.0271 w6=-0.2034 w7=0.0941 w8=0.2718 w9=0.2776
+-------------------
+epoch 23 pattern 2
+-------------------
+output: 1.0133
+backProp to o1 (error=-0.0133)
+o1 beta=-0.0133, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0133)
+x1 delta=-0.0133, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0133)
+x2 delta=-0.0133, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0133)
+h3 delta=-0.0060 beta=-0.0003
+backProp from h3 to x2 over connection w6 (error=-0.0003)
+x2 delta=-0.0003, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0133)
+h2 delta=-0.0026 beta=-0.0006
+backProp from h2 to x1 over connection w3 (error=-0.0006)
+x1 delta=-0.0006, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0006)
+x2 delta=-0.0006, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0133)
+h1 delta=-0.0037 beta=-0.0007
+backProp from h1 to x1 over connection w1 (error=-0.0007)
+x1 delta=-0.0007, no beta as INPUT layer
+connections: w1=-0.9525 w2=0.7993 w3=-0.9475 w4=-0.4467 w5=0.0138 w6=-0.2037 w7=0.0881 w8=0.2692 w9=0.2739
+MSE: 0.0006
+-------------------
+epoch 24 pattern 1
+-------------------
+output: 0.9948
+backProp to o1 (error=0.0052)
+o1 beta=0.0052, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0052)
+x1 delta=0.0052, no beta as INPUT layer
+w2.increment(0.0052)
+backProp from o1 to x2 over connection w5 (error=0.0052)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.0052)
+h3 delta=0.0026 beta=0.0001
+backProp from h3 to x2 over connection w6 (error=0.0001)
+x2 delta=0.0000, no beta as INPUT layer
+w7.increment(0.0026)
+backProp from o1 to h2 over connection w8 (error=0.0052)
+h2 delta=0.0015 beta=0.0003
+backProp from h2 to x1 over connection w3 (error=0.0003)
+x1 delta=0.0003, no beta as INPUT layer
+w3.increment(0.0003)
+backProp from h2 to x2 over connection w4 (error=0.0003)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.0015)
+backProp from o1 to h1 over connection w9 (error=0.0052)
+h1 delta=0.0015 beta=0.0003
+backProp from h1 to x1 over connection w1 (error=0.0003)
+x1 delta=0.0003, no beta as INPUT layer
+w1.increment(0.0003)
+w9.increment(0.0015)
+connections: w1=-0.9522 w2=0.8045 w3=-0.9472 w4=-0.4467 w5=0.0138 w6=-0.2037 w7=0.0907 w8=0.2707 w9=0.2753
+-------------------
+epoch 24 pattern 2
+-------------------
+output: 0.9895
+backProp to o1 (error=0.0105)
+o1 beta=0.0105, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0105)
+x1 delta=0.0105, no beta as INPUT layer
+w2.increment(0.0105)
+backProp from o1 to x2 over connection w5 (error=0.0105)
+x2 delta=0.0105, no beta as INPUT layer
+w5.increment(0.0105)
+backProp from o1 to h3 over connection w7 (error=0.0105)
+h3 delta=0.0047 beta=0.0002
+backProp from h3 to x2 over connection w6 (error=0.0002)
+x2 delta=0.0002, no beta as INPUT layer
+w6.increment(0.0002)
+w7.increment(0.0047)
+backProp from o1 to h2 over connection w8 (error=0.0105)
+h2 delta=0.0021 beta=0.0005
+backProp from h2 to x1 over connection w3 (error=0.0005)
+x1 delta=0.0005, no beta as INPUT layer
+w3.increment(0.0005)
+backProp from h2 to x2 over connection w4 (error=0.0005)
+x2 delta=0.0005, no beta as INPUT layer
+w4.increment(0.0005)
+w8.increment(0.0021)
+backProp from o1 to h1 over connection w9 (error=0.0105)
+h1 delta=0.0029 beta=0.0006
+backProp from h1 to x1 over connection w1 (error=0.0006)
+x1 delta=0.0006, no beta as INPUT layer
+w1.increment(0.0006)
+w9.increment(0.0029)
+connections: w1=-0.9517 w2=0.8150 w3=-0.9468 w4=-0.4463 w5=0.0243 w6=-0.2035 w7=0.0955 w8=0.2727 w9=0.2782
+MSE: 0.0001
+-------------------
+epoch 25 pattern 1
+-------------------
+output: 1.0165
+backProp to o1 (error=-0.0165)
+o1 beta=-0.0165, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0165)
+x1 delta=-0.0165, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0165)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0165)
+h3 delta=-0.0082 beta=-0.0004
+backProp from h3 to x2 over connection w6 (error=-0.0004)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0165)
+h2 delta=-0.0046 beta=-0.0009
+backProp from h2 to x1 over connection w3 (error=-0.0009)
+x1 delta=-0.0009, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0009)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0165)
+h1 delta=-0.0046 beta=-0.0009
+backProp from h1 to x1 over connection w1 (error=-0.0009)
+x1 delta=-0.0009, no beta as INPUT layer
+connections: w1=-0.9526 w2=0.7985 w3=-0.9477 w4=-0.4463 w5=0.0243 w6=-0.2035 w7=0.0872 w8=0.2681 w9=0.2737
+-------------------
+epoch 25 pattern 2
+-------------------
+output: 0.9915
+backProp to o1 (error=0.0085)
+o1 beta=0.0085, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0085)
+x1 delta=0.0085, no beta as INPUT layer
+w2.increment(0.0085)
+backProp from o1 to x2 over connection w5 (error=0.0085)
+x2 delta=0.0085, no beta as INPUT layer
+w5.increment(0.0085)
+backProp from o1 to h3 over connection w7 (error=0.0085)
+h3 delta=0.0038 beta=0.0002
+backProp from h3 to x2 over connection w6 (error=0.0002)
+x2 delta=0.0002, no beta as INPUT layer
+w6.increment(0.0002)
+w7.increment(0.0038)
+backProp from o1 to h2 over connection w8 (error=0.0085)
+h2 delta=0.0017 beta=0.0004
+backProp from h2 to x1 over connection w3 (error=0.0004)
+x1 delta=0.0004, no beta as INPUT layer
+w3.increment(0.0004)
+backProp from h2 to x2 over connection w4 (error=0.0004)
+x2 delta=0.0004, no beta as INPUT layer
+w4.increment(0.0004)
+w8.increment(0.0017)
+backProp from o1 to h1 over connection w9 (error=0.0085)
+h1 delta=0.0024 beta=0.0005
+backProp from h1 to x1 over connection w1 (error=0.0005)
+x1 delta=0.0005, no beta as INPUT layer
+w1.increment(0.0005)
+w9.increment(0.0024)
+connections: w1=-0.9521 w2=0.8070 w3=-0.9473 w4=-0.4459 w5=0.0328 w6=-0.2033 w7=0.0911 w8=0.2698 w9=0.2760
+MSE: 0.0002
+-------------------
+epoch 26 pattern 1
+-------------------
+output: 1.0048
+backProp to o1 (error=-0.0048)
+o1 beta=-0.0048, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0048)
+x1 delta=-0.0048, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0048)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0048)
+h3 delta=-0.0024 beta=-0.0001
+backProp from h3 to x2 over connection w6 (error=-0.0001)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0048)
+h2 delta=-0.0014 beta=-0.0003
+backProp from h2 to x1 over connection w3 (error=-0.0003)
+x1 delta=-0.0003, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0003)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0048)
+h1 delta=-0.0013 beta=-0.0003
+backProp from h1 to x1 over connection w1 (error=-0.0003)
+x1 delta=-0.0003, no beta as INPUT layer
+connections: w1=-0.9524 w2=0.8022 w3=-0.9476 w4=-0.4459 w5=0.0328 w6=-0.2033 w7=0.0886 w8=0.2685 w9=0.2747
+-------------------
+epoch 26 pattern 2
+-------------------
+output: 1.0047
+backProp to o1 (error=-0.0047)
+o1 beta=-0.0047, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0047)
+x1 delta=-0.0047, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0047)
+x2 delta=-0.0047, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0047)
+h3 delta=-0.0021 beta=-0.0001
+backProp from h3 to x2 over connection w6 (error=-0.0001)
+x2 delta=-0.0001, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0047)
+h2 delta=-0.0009 beta=-0.0002
+backProp from h2 to x1 over connection w3 (error=-0.0002)
+x1 delta=-0.0002, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0002)
+x2 delta=-0.0002, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0047)
+h1 delta=-0.0013 beta=-0.0003
+backProp from h1 to x1 over connection w1 (error=-0.0003)
+x1 delta=-0.0003, no beta as INPUT layer
+connections: w1=-0.9526 w2=0.7975 w3=-0.9478 w4=-0.4461 w5=0.0281 w6=-0.2034 w7=0.0865 w8=0.2676 w9=0.2734
+MSE: 0.0000
+-------------------
+epoch 27 pattern 1
+-------------------
+output: 0.9916
+backProp to o1 (error=0.0084)
+o1 beta=0.0084, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0084)
+x1 delta=0.0084, no beta as INPUT layer
+w2.increment(0.0084)
+backProp from o1 to x2 over connection w5 (error=0.0084)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.0084)
+h3 delta=0.0042 beta=0.0002
+backProp from h3 to x2 over connection w6 (error=0.0002)
+x2 delta=0.0000, no beta as INPUT layer
+w7.increment(0.0042)
+backProp from o1 to h2 over connection w8 (error=0.0084)
+h2 delta=0.0023 beta=0.0005
+backProp from h2 to x1 over connection w3 (error=0.0005)
+x1 delta=0.0005, no beta as INPUT layer
+w3.increment(0.0005)
+backProp from h2 to x2 over connection w4 (error=0.0005)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.0023)
+backProp from o1 to h1 over connection w9 (error=0.0084)
+h1 delta=0.0023 beta=0.0005
+backProp from h1 to x1 over connection w1 (error=0.0005)
+x1 delta=0.0005, no beta as INPUT layer
+w1.increment(0.0005)
+w9.increment(0.0023)
+connections: w1=-0.9522 w2=0.8059 w3=-0.9473 w4=-0.4461 w5=0.0281 w6=-0.2034 w7=0.0907 w8=0.2699 w9=0.2757
+-------------------
+epoch 27 pattern 2
+-------------------
+output: 1.0052
+backProp to o1 (error=-0.0052)
+o1 beta=-0.0052, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0052)
+x1 delta=-0.0052, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0052)
+x2 delta=-0.0052, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0052)
+h3 delta=-0.0023 beta=-0.0001
+backProp from h3 to x2 over connection w6 (error=-0.0001)
+x2 delta=-0.0001, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0052)
+h2 delta=-0.0010 beta=-0.0002
+backProp from h2 to x1 over connection w3 (error=-0.0002)
+x1 delta=-0.0002, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0002)
+x2 delta=-0.0002, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0052)
+h1 delta=-0.0015 beta=-0.0003
+backProp from h1 to x1 over connection w1 (error=-0.0003)
+x1 delta=-0.0003, no beta as INPUT layer
+connections: w1=-0.9525 w2=0.8007 w3=-0.9476 w4=-0.4463 w5=0.0229 w6=-0.2035 w7=0.0884 w8=0.2689 w9=0.2743
+MSE: 0.0000
+-------------------
+epoch 28 pattern 1
+-------------------
+output: 0.9963
+backProp to o1 (error=0.0037)
+o1 beta=0.0037, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0037)
+x1 delta=0.0037, no beta as INPUT layer
+w2.increment(0.0037)
+backProp from o1 to x2 over connection w5 (error=0.0037)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.0037)
+h3 delta=0.0018 beta=0.0001
+backProp from h3 to x2 over connection w6 (error=0.0001)
+x2 delta=0.0000, no beta as INPUT layer
+w7.increment(0.0018)
+backProp from o1 to h2 over connection w8 (error=0.0037)
+h2 delta=0.0010 beta=0.0002
+backProp from h2 to x1 over connection w3 (error=0.0002)
+x1 delta=0.0002, no beta as INPUT layer
+w3.increment(0.0002)
+backProp from h2 to x2 over connection w4 (error=0.0002)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.0010)
+backProp from o1 to h1 over connection w9 (error=0.0037)
+h1 delta=0.0010 beta=0.0002
+backProp from h1 to x1 over connection w1 (error=0.0002)
+x1 delta=0.0002, no beta as INPUT layer
+w1.increment(0.0002)
+w9.increment(0.0010)
+connections: w1=-0.9523 w2=0.8043 w3=-0.9474 w4=-0.4463 w5=0.0229 w6=-0.2035 w7=0.0902 w8=0.2699 w9=0.2753
+-------------------
+epoch 28 pattern 2
+-------------------
+output: 0.9981
+backProp to o1 (error=0.0019)
+o1 beta=0.0019, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0019)
+x1 delta=0.0019, no beta as INPUT layer
+w2.increment(0.0019)
+backProp from o1 to x2 over connection w5 (error=0.0019)
+x2 delta=0.0019, no beta as INPUT layer
+w5.increment(0.0019)
+backProp from o1 to h3 over connection w7 (error=0.0019)
+h3 delta=0.0009 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w6.increment(0.0000)
+w7.increment(0.0009)
+backProp from o1 to h2 over connection w8 (error=0.0019)
+h2 delta=0.0004 beta=0.0001
+backProp from h2 to x1 over connection w3 (error=0.0001)
+x1 delta=0.0001, no beta as INPUT layer
+w3.increment(0.0001)
+backProp from h2 to x2 over connection w4 (error=0.0001)
+x2 delta=0.0001, no beta as INPUT layer
+w4.increment(0.0001)
+w8.increment(0.0004)
+backProp from o1 to h1 over connection w9 (error=0.0019)
+h1 delta=0.0005 beta=0.0001
+backProp from h1 to x1 over connection w1 (error=0.0001)
+x1 delta=0.0001, no beta as INPUT layer
+w1.increment(0.0001)
+w9.increment(0.0005)
+connections: w1=-0.9522 w2=0.8063 w3=-0.9473 w4=-0.4462 w5=0.0248 w6=-0.2035 w7=0.0911 w8=0.2703 w9=0.2758
+MSE: 0.0000
+-------------------
+epoch 29 pattern 1
+-------------------
+output: 1.0041
+backProp to o1 (error=-0.0041)
+o1 beta=-0.0041, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0041)
+x1 delta=-0.0041, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0041)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0041)
+h3 delta=-0.0021 beta=-0.0001
+backProp from h3 to x2 over connection w6 (error=-0.0001)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0041)
+h2 delta=-0.0012 beta=-0.0002
+backProp from h2 to x1 over connection w3 (error=-0.0002)
+x1 delta=-0.0002, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0002)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0041)
+h1 delta=-0.0012 beta=-0.0002
+backProp from h1 to x1 over connection w1 (error=-0.0002)
+x1 delta=-0.0002, no beta as INPUT layer
+connections: w1=-0.9524 w2=0.8021 w3=-0.9475 w4=-0.4462 w5=0.0248 w6=-0.2035 w7=0.0890 w8=0.2691 w9=0.2747
+-------------------
+epoch 29 pattern 2
+-------------------
+output: 0.9969
+backProp to o1 (error=0.0031)
+o1 beta=0.0031, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0031)
+x1 delta=0.0031, no beta as INPUT layer
+w2.increment(0.0031)
+backProp from o1 to x2 over connection w5 (error=0.0031)
+x2 delta=0.0031, no beta as INPUT layer
+w5.increment(0.0031)
+backProp from o1 to h3 over connection w7 (error=0.0031)
+h3 delta=0.0014 beta=0.0001
+backProp from h3 to x2 over connection w6 (error=0.0001)
+x2 delta=0.0001, no beta as INPUT layer
+w6.increment(0.0001)
+w7.increment(0.0014)
+backProp from o1 to h2 over connection w8 (error=0.0031)
+h2 delta=0.0006 beta=0.0001
+backProp from h2 to x1 over connection w3 (error=0.0001)
+x1 delta=0.0001, no beta as INPUT layer
+w3.increment(0.0001)
+backProp from h2 to x2 over connection w4 (error=0.0001)
+x2 delta=0.0001, no beta as INPUT layer
+w4.increment(0.0001)
+w8.increment(0.0006)
+backProp from o1 to h1 over connection w9 (error=0.0031)
+h1 delta=0.0009 beta=0.0002
+backProp from h1 to x1 over connection w1 (error=0.0002)
+x1 delta=0.0002, no beta as INPUT layer
+w1.increment(0.0002)
+w9.increment(0.0009)
+connections: w1=-0.9522 w2=0.8052 w3=-0.9474 w4=-0.4461 w5=0.0279 w6=-0.2034 w7=0.0904 w8=0.2697 w9=0.2755
+MSE: 0.0000
+-------------------
+epoch 30 pattern 1
+-------------------
+output: 1.0025
+backProp to o1 (error=-0.0025)
+o1 beta=-0.0025, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0025)
+x1 delta=-0.0025, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0025)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0025)
+h3 delta=-0.0012 beta=-0.0001
+backProp from h3 to x2 over connection w6 (error=-0.0001)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0025)
+h2 delta=-0.0007 beta=-0.0001
+backProp from h2 to x1 over connection w3 (error=-0.0001)
+x1 delta=-0.0001, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0001)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0025)
+h1 delta=-0.0007 beta=-0.0001
+backProp from h1 to x1 over connection w1 (error=-0.0001)
+x1 delta=-0.0001, no beta as INPUT layer
+connections: w1=-0.9524 w2=0.8027 w3=-0.9475 w4=-0.4461 w5=0.0279 w6=-0.2034 w7=0.0891 w8=0.2690 w9=0.2748
+-------------------
+epoch 30 pattern 2
+-------------------
+output: 1.0007
+backProp to o1 (error=-0.0007)
+o1 beta=-0.0007, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0007)
+x1 delta=-0.0007, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0007)
+x2 delta=-0.0007, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0007)
+h3 delta=-0.0003 beta=-0.0000
+backProp from h3 to x2 over connection w6 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0007)
+h2 delta=-0.0001 beta=-0.0000
+backProp from h2 to x1 over connection w3 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0007)
+h1 delta=-0.0002 beta=-0.0000
+backProp from h1 to x1 over connection w1 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+connections: w1=-0.9524 w2=0.8020 w3=-0.9475 w4=-0.4461 w5=0.0272 w6=-0.2034 w7=0.0888 w8=0.2689 w9=0.2746
+MSE: 0.0000
+-------------------
+epoch 31 pattern 1
+-------------------
+output: 0.9980
+backProp to o1 (error=0.0020)
+o1 beta=0.0020, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0020)
+x1 delta=0.0020, no beta as INPUT layer
+w2.increment(0.0020)
+backProp from o1 to x2 over connection w5 (error=0.0020)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.0020)
+h3 delta=0.0010 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w7.increment(0.0010)
+backProp from o1 to h2 over connection w8 (error=0.0020)
+h2 delta=0.0005 beta=0.0001
+backProp from h2 to x1 over connection w3 (error=0.0001)
+x1 delta=0.0001, no beta as INPUT layer
+w3.increment(0.0001)
+backProp from h2 to x2 over connection w4 (error=0.0001)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.0005)
+backProp from o1 to h1 over connection w9 (error=0.0020)
+h1 delta=0.0005 beta=0.0001
+backProp from h1 to x1 over connection w1 (error=0.0001)
+x1 delta=0.0001, no beta as INPUT layer
+w1.increment(0.0001)
+w9.increment(0.0005)
+connections: w1=-0.9523 w2=0.8040 w3=-0.9474 w4=-0.4461 w5=0.0272 w6=-0.2034 w7=0.0898 w8=0.2694 w9=0.2752
+-------------------
+epoch 31 pattern 2
+-------------------
+output: 1.0018
+backProp to o1 (error=-0.0018)
+o1 beta=-0.0018, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0018)
+x1 delta=-0.0018, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0018)
+x2 delta=-0.0018, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0018)
+h3 delta=-0.0008 beta=-0.0000
+backProp from h3 to x2 over connection w6 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0018)
+h2 delta=-0.0004 beta=-0.0001
+backProp from h2 to x1 over connection w3 (error=-0.0001)
+x1 delta=-0.0001, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0001)
+x2 delta=-0.0001, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0018)
+h1 delta=-0.0005 beta=-0.0001
+backProp from h1 to x1 over connection w1 (error=-0.0001)
+x1 delta=-0.0001, no beta as INPUT layer
+connections: w1=-0.9524 w2=0.8022 w3=-0.9475 w4=-0.4462 w5=0.0255 w6=-0.2034 w7=0.0890 w8=0.2691 w9=0.2747
+MSE: 0.0000
+-------------------
+epoch 32 pattern 1
+-------------------
+output: 0.9984
+backProp to o1 (error=0.0016)
+o1 beta=0.0016, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0016)
+x1 delta=0.0016, no beta as INPUT layer
+w2.increment(0.0016)
+backProp from o1 to x2 over connection w5 (error=0.0016)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.0016)
+h3 delta=0.0008 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w7.increment(0.0008)
+backProp from o1 to h2 over connection w8 (error=0.0016)
+h2 delta=0.0004 beta=0.0001
+backProp from h2 to x1 over connection w3 (error=0.0001)
+x1 delta=0.0001, no beta as INPUT layer
+w3.increment(0.0001)
+backProp from h2 to x2 over connection w4 (error=0.0001)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.0004)
+backProp from o1 to h1 over connection w9 (error=0.0016)
+h1 delta=0.0004 beta=0.0001
+backProp from h1 to x1 over connection w1 (error=0.0001)
+x1 delta=0.0001, no beta as INPUT layer
+w1.increment(0.0001)
+w9.increment(0.0004)
+connections: w1=-0.9523 w2=0.8038 w3=-0.9474 w4=-0.4462 w5=0.0255 w6=-0.2034 w7=0.0898 w8=0.2695 w9=0.2751
+-------------------
+epoch 32 pattern 2
+-------------------
+output: 0.9998
+backProp to o1 (error=0.0002)
+o1 beta=0.0002, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0002)
+x1 delta=0.0002, no beta as INPUT layer
+w2.increment(0.0002)
+backProp from o1 to x2 over connection w5 (error=0.0002)
+x2 delta=0.0002, no beta as INPUT layer
+w5.increment(0.0002)
+backProp from o1 to h3 over connection w7 (error=0.0002)
+h3 delta=0.0001 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w6.increment(0.0000)
+w7.increment(0.0001)
+backProp from o1 to h2 over connection w8 (error=0.0002)
+h2 delta=0.0000 beta=0.0000
+backProp from h2 to x1 over connection w3 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w3.increment(0.0000)
+backProp from h2 to x2 over connection w4 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w4.increment(0.0000)
+w8.increment(0.0000)
+backProp from o1 to h1 over connection w9 (error=0.0002)
+h1 delta=0.0000 beta=0.0000
+backProp from h1 to x1 over connection w1 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w1.increment(0.0000)
+w9.increment(0.0000)
+connections: w1=-0.9523 w2=0.8040 w3=-0.9474 w4=-0.4462 w5=0.0256 w6=-0.2034 w7=0.0899 w8=0.2696 w9=0.2752
+MSE: 0.0000
+-------------------
+epoch 33 pattern 1
+-------------------
+output: 1.0009
+backProp to o1 (error=-0.0009)
+o1 beta=-0.0009, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0009)
+x1 delta=-0.0009, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0009)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0009)
+h3 delta=-0.0004 beta=-0.0000
+backProp from h3 to x2 over connection w6 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0009)
+h2 delta=-0.0002 beta=-0.0000
+backProp from h2 to x1 over connection w3 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0009)
+h1 delta=-0.0002 beta=-0.0000
+backProp from h1 to x1 over connection w1 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+connections: w1=-0.9523 w2=0.8031 w3=-0.9475 w4=-0.4462 w5=0.0256 w6=-0.2034 w7=0.0895 w8=0.2693 w9=0.2749
+-------------------
+epoch 33 pattern 2
+-------------------
+output: 0.9990
+backProp to o1 (error=0.0010)
+o1 beta=0.0010, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0010)
+x1 delta=0.0010, no beta as INPUT layer
+w2.increment(0.0010)
+backProp from o1 to x2 over connection w5 (error=0.0010)
+x2 delta=0.0010, no beta as INPUT layer
+w5.increment(0.0010)
+backProp from o1 to h3 over connection w7 (error=0.0010)
+h3 delta=0.0004 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w6.increment(0.0000)
+w7.increment(0.0004)
+backProp from o1 to h2 over connection w8 (error=0.0010)
+h2 delta=0.0002 beta=0.0000
+backProp from h2 to x1 over connection w3 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w3.increment(0.0000)
+backProp from h2 to x2 over connection w4 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w4.increment(0.0000)
+w8.increment(0.0002)
+backProp from o1 to h1 over connection w9 (error=0.0010)
+h1 delta=0.0003 beta=0.0001
+backProp from h1 to x1 over connection w1 (error=0.0001)
+x1 delta=0.0001, no beta as INPUT layer
+w1.increment(0.0001)
+w9.increment(0.0003)
+connections: w1=-0.9523 w2=0.8041 w3=-0.9474 w4=-0.4462 w5=0.0266 w6=-0.2034 w7=0.0899 w8=0.2695 w9=0.2752
+MSE: 0.0000
+-------------------
+epoch 34 pattern 1
+-------------------
+output: 1.0010
+backProp to o1 (error=-0.0010)
+o1 beta=-0.0010, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0010)
+x1 delta=-0.0010, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0010)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0010)
+h3 delta=-0.0005 beta=-0.0000
+backProp from h3 to x2 over connection w6 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0010)
+h2 delta=-0.0003 beta=-0.0001
+backProp from h2 to x1 over connection w3 (error=-0.0001)
+x1 delta=-0.0001, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0001)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0010)
+h1 delta=-0.0003 beta=-0.0001
+backProp from h1 to x1 over connection w1 (error=-0.0001)
+x1 delta=-0.0001, no beta as INPUT layer
+connections: w1=-0.9523 w2=0.8031 w3=-0.9475 w4=-0.4462 w5=0.0266 w6=-0.2034 w7=0.0894 w8=0.2692 w9=0.2749
+-------------------
+epoch 34 pattern 2
+-------------------
+output: 1.0000
+backProp to o1 (error=0.0000)
+o1 beta=0.0000, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w2.increment(0.0000)
+backProp from o1 to x2 over connection w5 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w5.increment(0.0000)
+backProp from o1 to h3 over connection w7 (error=0.0000)
+h3 delta=0.0000 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w6.increment(0.0000)
+w7.increment(0.0000)
+backProp from o1 to h2 over connection w8 (error=0.0000)
+h2 delta=0.0000 beta=0.0000
+backProp from h2 to x1 over connection w3 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w3.increment(0.0000)
+backProp from h2 to x2 over connection w4 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w4.increment(0.0000)
+w8.increment(0.0000)
+backProp from o1 to h1 over connection w9 (error=0.0000)
+h1 delta=0.0000 beta=0.0000
+backProp from h1 to x1 over connection w1 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w1.increment(0.0000)
+w9.increment(0.0000)
+connections: w1=-0.9523 w2=0.8032 w3=-0.9475 w4=-0.4462 w5=0.0266 w6=-0.2034 w7=0.0894 w8=0.2693 w9=0.2749
+MSE: 0.0000
+-------------------
+epoch 35 pattern 1
+-------------------
+output: 0.9996
+backProp to o1 (error=0.0004)
+o1 beta=0.0004, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0004)
+x1 delta=0.0004, no beta as INPUT layer
+w2.increment(0.0004)
+backProp from o1 to x2 over connection w5 (error=0.0004)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.0004)
+h3 delta=0.0002 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w7.increment(0.0002)
+backProp from o1 to h2 over connection w8 (error=0.0004)
+h2 delta=0.0001 beta=0.0000
+backProp from h2 to x1 over connection w3 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w3.increment(0.0000)
+backProp from h2 to x2 over connection w4 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.0001)
+backProp from o1 to h1 over connection w9 (error=0.0004)
+h1 delta=0.0001 beta=0.0000
+backProp from h1 to x1 over connection w1 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w1.increment(0.0000)
+w9.increment(0.0001)
+connections: w1=-0.9523 w2=0.8035 w3=-0.9475 w4=-0.4462 w5=0.0266 w6=-0.2034 w7=0.0896 w8=0.2694 w9=0.2750
+-------------------
+epoch 35 pattern 2
+-------------------
+output: 1.0005
+backProp to o1 (error=-0.0005)
+o1 beta=-0.0005, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0005)
+x1 delta=-0.0005, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0005)
+x2 delta=-0.0005, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0005)
+h3 delta=-0.0002 beta=-0.0000
+backProp from h3 to x2 over connection w6 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0005)
+h2 delta=-0.0001 beta=-0.0000
+backProp from h2 to x1 over connection w3 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0005)
+h1 delta=-0.0001 beta=-0.0000
+backProp from h1 to x1 over connection w1 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+connections: w1=-0.9523 w2=0.8030 w3=-0.9475 w4=-0.4462 w5=0.0261 w6=-0.2034 w7=0.0894 w8=0.2692 w9=0.2749
+MSE: 0.0000
+-------------------
+epoch 36 pattern 1
+-------------------
+output: 0.9994
+backProp to o1 (error=0.0006)
+o1 beta=0.0006, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0006)
+x1 delta=0.0006, no beta as INPUT layer
+w2.increment(0.0006)
+backProp from o1 to x2 over connection w5 (error=0.0006)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.0006)
+h3 delta=0.0003 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w7.increment(0.0003)
+backProp from o1 to h2 over connection w8 (error=0.0006)
+h2 delta=0.0002 beta=0.0000
+backProp from h2 to x1 over connection w3 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w3.increment(0.0000)
+backProp from h2 to x2 over connection w4 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.0002)
+backProp from o1 to h1 over connection w9 (error=0.0006)
+h1 delta=0.0002 beta=0.0000
+backProp from h1 to x1 over connection w1 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w1.increment(0.0000)
+w9.increment(0.0002)
+connections: w1=-0.9523 w2=0.8036 w3=-0.9474 w4=-0.4462 w5=0.0261 w6=-0.2034 w7=0.0896 w8=0.2694 w9=0.2751
+-------------------
+epoch 36 pattern 2
+-------------------
+output: 1.0001
+backProp to o1 (error=-0.0001)
+o1 beta=-0.0001, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0001)
+x1 delta=-0.0001, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0001)
+x2 delta=-0.0001, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0001)
+h3 delta=-0.0000 beta=-0.0000
+backProp from h3 to x2 over connection w6 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0001)
+h2 delta=-0.0000 beta=-0.0000
+backProp from h2 to x1 over connection w3 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0001)
+h1 delta=-0.0000 beta=-0.0000
+backProp from h1 to x1 over connection w1 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+connections: w1=-0.9523 w2=0.8035 w3=-0.9474 w4=-0.4462 w5=0.0260 w6=-0.2034 w7=0.0896 w8=0.2694 w9=0.2750
+MSE: 0.0000
+-------------------
+epoch 37 pattern 1
+-------------------
+output: 1.0001
+backProp to o1 (error=-0.0001)
+o1 beta=-0.0001, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0001)
+x1 delta=-0.0001, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0001)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0001)
+h3 delta=-0.0001 beta=-0.0000
+backProp from h3 to x2 over connection w6 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0001)
+h2 delta=-0.0000 beta=-0.0000
+backProp from h2 to x1 over connection w3 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0001)
+h1 delta=-0.0000 beta=-0.0000
+backProp from h1 to x1 over connection w1 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0260 w6=-0.2034 w7=0.0895 w8=0.2694 w9=0.2750
+-------------------
+epoch 37 pattern 2
+-------------------
+output: 0.9997
+backProp to o1 (error=0.0003)
+o1 beta=0.0003, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0003)
+x1 delta=0.0003, no beta as INPUT layer
+w2.increment(0.0003)
+backProp from o1 to x2 over connection w5 (error=0.0003)
+x2 delta=0.0003, no beta as INPUT layer
+w5.increment(0.0003)
+backProp from o1 to h3 over connection w7 (error=0.0003)
+h3 delta=0.0001 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w6.increment(0.0000)
+w7.increment(0.0001)
+backProp from o1 to h2 over connection w8 (error=0.0003)
+h2 delta=0.0001 beta=0.0000
+backProp from h2 to x1 over connection w3 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w3.increment(0.0000)
+backProp from h2 to x2 over connection w4 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w4.increment(0.0000)
+w8.increment(0.0001)
+backProp from o1 to h1 over connection w9 (error=0.0003)
+h1 delta=0.0001 beta=0.0000
+backProp from h1 to x1 over connection w1 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w1.increment(0.0000)
+w9.increment(0.0001)
+connections: w1=-0.9523 w2=0.8036 w3=-0.9474 w4=-0.4462 w5=0.0263 w6=-0.2034 w7=0.0897 w8=0.2694 w9=0.2751
+MSE: 0.0000
+-------------------
+epoch 38 pattern 1
+-------------------
+output: 1.0003
+backProp to o1 (error=-0.0003)
+o1 beta=-0.0003, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0003)
+x1 delta=-0.0003, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0003)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0003)
+h3 delta=-0.0002 beta=-0.0000
+backProp from h3 to x2 over connection w6 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0003)
+h2 delta=-0.0001 beta=-0.0000
+backProp from h2 to x1 over connection w3 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0003)
+h1 delta=-0.0001 beta=-0.0000
+backProp from h1 to x1 over connection w1 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+connections: w1=-0.9523 w2=0.8033 w3=-0.9475 w4=-0.4462 w5=0.0263 w6=-0.2034 w7=0.0895 w8=0.2693 w9=0.2750
+-------------------
+epoch 38 pattern 2
+-------------------
+output: 0.9999
+backProp to o1 (error=0.0001)
+o1 beta=0.0001, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0001)
+x1 delta=0.0001, no beta as INPUT layer
+w2.increment(0.0001)
+backProp from o1 to x2 over connection w5 (error=0.0001)
+x2 delta=0.0001, no beta as INPUT layer
+w5.increment(0.0001)
+backProp from o1 to h3 over connection w7 (error=0.0001)
+h3 delta=0.0000 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w6.increment(0.0000)
+w7.increment(0.0000)
+backProp from o1 to h2 over connection w8 (error=0.0001)
+h2 delta=0.0000 beta=0.0000
+backProp from h2 to x1 over connection w3 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w3.increment(0.0000)
+backProp from h2 to x2 over connection w4 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w4.increment(0.0000)
+w8.increment(0.0000)
+backProp from o1 to h1 over connection w9 (error=0.0001)
+h1 delta=0.0000 beta=0.0000
+backProp from h1 to x1 over connection w1 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w1.increment(0.0000)
+w9.increment(0.0000)
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0264 w6=-0.2034 w7=0.0895 w8=0.2693 w9=0.2750
+MSE: 0.0000
+-------------------
+epoch 39 pattern 1
+-------------------
+output: 1.0000
+backProp to o1 (error=0.0000)
+o1 beta=0.0000, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w2.increment(0.0000)
+backProp from o1 to x2 over connection w5 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.0000)
+h3 delta=0.0000 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w7.increment(0.0000)
+backProp from o1 to h2 over connection w8 (error=0.0000)
+h2 delta=0.0000 beta=0.0000
+backProp from h2 to x1 over connection w3 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w3.increment(0.0000)
+backProp from h2 to x2 over connection w4 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.0000)
+backProp from o1 to h1 over connection w9 (error=0.0000)
+h1 delta=0.0000 beta=0.0000
+backProp from h1 to x1 over connection w1 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w1.increment(0.0000)
+w9.increment(0.0000)
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0264 w6=-0.2034 w7=0.0896 w8=0.2693 w9=0.2750
+-------------------
+epoch 39 pattern 2
+-------------------
+output: 1.0001
+backProp to o1 (error=-0.0001)
+o1 beta=-0.0001, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0001)
+x1 delta=-0.0001, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0001)
+x2 delta=-0.0001, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0001)
+h3 delta=-0.0001 beta=-0.0000
+backProp from h3 to x2 over connection w6 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0001)
+h2 delta=-0.0000 beta=-0.0000
+backProp from h2 to x1 over connection w3 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0001)
+h1 delta=-0.0000 beta=-0.0000
+backProp from h1 to x1 over connection w1 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+connections: w1=-0.9523 w2=0.8033 w3=-0.9475 w4=-0.4462 w5=0.0262 w6=-0.2034 w7=0.0895 w8=0.2693 w9=0.2750
+MSE: 0.0000
+-------------------
+epoch 40 pattern 1
+-------------------
+output: 0.9998
+backProp to o1 (error=0.0002)
+o1 beta=0.0002, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0002)
+x1 delta=0.0002, no beta as INPUT layer
+w2.increment(0.0002)
+backProp from o1 to x2 over connection w5 (error=0.0002)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.0002)
+h3 delta=0.0001 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w7.increment(0.0001)
+backProp from o1 to h2 over connection w8 (error=0.0002)
+h2 delta=0.0001 beta=0.0000
+backProp from h2 to x1 over connection w3 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w3.increment(0.0000)
+backProp from h2 to x2 over connection w4 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.0001)
+backProp from o1 to h1 over connection w9 (error=0.0002)
+h1 delta=0.0001 beta=0.0000
+backProp from h1 to x1 over connection w1 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w1.increment(0.0000)
+w9.increment(0.0001)
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0262 w6=-0.2034 w7=0.0896 w8=0.2694 w9=0.2750
+-------------------
+epoch 40 pattern 2
+-------------------
+output: 1.0001
+backProp to o1 (error=-0.0001)
+o1 beta=-0.0001, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0001)
+x1 delta=-0.0001, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0001)
+x2 delta=-0.0001, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0001)
+h3 delta=-0.0000 beta=-0.0000
+backProp from h3 to x2 over connection w6 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0001)
+h2 delta=-0.0000 beta=-0.0000
+backProp from h2 to x1 over connection w3 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0001)
+h1 delta=-0.0000 beta=-0.0000
+backProp from h1 to x1 over connection w1 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0262 w6=-0.2034 w7=0.0896 w8=0.2694 w9=0.2750
+MSE: 0.0000
+-------------------
+epoch 41 pattern 1
+-------------------
+output: 1.0000
+backProp to o1 (error=0.0000)
+o1 beta=0.0000, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w2.increment(0.0000)
+backProp from o1 to x2 over connection w5 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.0000)
+h3 delta=0.0000 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w7.increment(0.0000)
+backProp from o1 to h2 over connection w8 (error=0.0000)
+h2 delta=0.0000 beta=0.0000
+backProp from h2 to x1 over connection w3 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w3.increment(0.0000)
+backProp from h2 to x2 over connection w4 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.0000)
+backProp from o1 to h1 over connection w9 (error=0.0000)
+h1 delta=0.0000 beta=0.0000
+backProp from h1 to x1 over connection w1 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w1.increment(0.0000)
+w9.increment(0.0000)
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0262 w6=-0.2034 w7=0.0896 w8=0.2694 w9=0.2750
+-------------------
+epoch 41 pattern 2
+-------------------
+output: 0.9999
+backProp to o1 (error=0.0001)
+o1 beta=0.0001, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0001)
+x1 delta=0.0001, no beta as INPUT layer
+w2.increment(0.0001)
+backProp from o1 to x2 over connection w5 (error=0.0001)
+x2 delta=0.0001, no beta as INPUT layer
+w5.increment(0.0001)
+backProp from o1 to h3 over connection w7 (error=0.0001)
+h3 delta=0.0000 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w6.increment(0.0000)
+w7.increment(0.0000)
+backProp from o1 to h2 over connection w8 (error=0.0001)
+h2 delta=0.0000 beta=0.0000
+backProp from h2 to x1 over connection w3 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w3.increment(0.0000)
+backProp from h2 to x2 over connection w4 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w4.increment(0.0000)
+w8.increment(0.0000)
+backProp from o1 to h1 over connection w9 (error=0.0001)
+h1 delta=0.0000 beta=0.0000
+backProp from h1 to x1 over connection w1 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w1.increment(0.0000)
+w9.increment(0.0000)
+connections: w1=-0.9523 w2=0.8035 w3=-0.9475 w4=-0.4462 w5=0.0262 w6=-0.2034 w7=0.0896 w8=0.2694 w9=0.2750
+MSE: 0.0000
+-------------------
+epoch 42 pattern 1
+-------------------
+output: 1.0001
+backProp to o1 (error=-0.0001)
+o1 beta=-0.0001, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0001)
+x1 delta=-0.0001, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0001)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0001)
+h3 delta=-0.0000 beta=-0.0000
+backProp from h3 to x2 over connection w6 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0001)
+h2 delta=-0.0000 beta=-0.0000
+backProp from h2 to x1 over connection w3 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0001)
+h1 delta=-0.0000 beta=-0.0000
+backProp from h1 to x1 over connection w1 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0262 w6=-0.2034 w7=0.0895 w8=0.2693 w9=0.2750
+-------------------
+epoch 42 pattern 2
+-------------------
+output: 1.0000
+backProp to o1 (error=0.0000)
+o1 beta=0.0000, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w2.increment(0.0000)
+backProp from o1 to x2 over connection w5 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w5.increment(0.0000)
+backProp from o1 to h3 over connection w7 (error=0.0000)
+h3 delta=0.0000 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w6.increment(0.0000)
+w7.increment(0.0000)
+backProp from o1 to h2 over connection w8 (error=0.0000)
+h2 delta=0.0000 beta=0.0000
+backProp from h2 to x1 over connection w3 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w3.increment(0.0000)
+backProp from h2 to x2 over connection w4 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w4.increment(0.0000)
+w8.increment(0.0000)
+backProp from o1 to h1 over connection w9 (error=0.0000)
+h1 delta=0.0000 beta=0.0000
+backProp from h1 to x1 over connection w1 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w1.increment(0.0000)
+w9.increment(0.0000)
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0263 w6=-0.2034 w7=0.0896 w8=0.2694 w9=0.2750
+MSE: 0.0000
+-------------------
+epoch 43 pattern 1
+-------------------
+output: 1.0000
+backProp to o1 (error=-0.0000)
+o1 beta=-0.0000, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0000)
+h3 delta=-0.0000 beta=-0.0000
+backProp from h3 to x2 over connection w6 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0000)
+h2 delta=-0.0000 beta=-0.0000
+backProp from h2 to x1 over connection w3 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0000)
+h1 delta=-0.0000 beta=-0.0000
+backProp from h1 to x1 over connection w1 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0263 w6=-0.2034 w7=0.0896 w8=0.2693 w9=0.2750
+-------------------
+epoch 43 pattern 2
+-------------------
+output: 1.0000
+backProp to o1 (error=-0.0000)
+o1 beta=-0.0000, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0000)
+h3 delta=-0.0000 beta=-0.0000
+backProp from h3 to x2 over connection w6 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0000)
+h2 delta=-0.0000 beta=-0.0000
+backProp from h2 to x1 over connection w3 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0000)
+h1 delta=-0.0000 beta=-0.0000
+backProp from h1 to x1 over connection w1 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0262 w6=-0.2034 w7=0.0895 w8=0.2693 w9=0.2750
+MSE: 0.0000
+-------------------
+epoch 44 pattern 1
+-------------------
+output: 0.9999
+backProp to o1 (error=0.0001)
+o1 beta=0.0001, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0001)
+x1 delta=0.0001, no beta as INPUT layer
+w2.increment(0.0001)
+backProp from o1 to x2 over connection w5 (error=0.0001)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.0001)
+h3 delta=0.0000 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w7.increment(0.0000)
+backProp from o1 to h2 over connection w8 (error=0.0001)
+h2 delta=0.0000 beta=0.0000
+backProp from h2 to x1 over connection w3 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w3.increment(0.0000)
+backProp from h2 to x2 over connection w4 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.0000)
+backProp from o1 to h1 over connection w9 (error=0.0001)
+h1 delta=0.0000 beta=0.0000
+backProp from h1 to x1 over connection w1 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w1.increment(0.0000)
+w9.increment(0.0000)
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0262 w6=-0.2034 w7=0.0896 w8=0.2694 w9=0.2750
+-------------------
+epoch 44 pattern 2
+-------------------
+output: 1.0000
+backProp to o1 (error=-0.0000)
+o1 beta=-0.0000, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0000)
+h3 delta=-0.0000 beta=-0.0000
+backProp from h3 to x2 over connection w6 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0000)
+h2 delta=-0.0000 beta=-0.0000
+backProp from h2 to x1 over connection w3 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0000)
+h1 delta=-0.0000 beta=-0.0000
+backProp from h1 to x1 over connection w1 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0262 w6=-0.2034 w7=0.0896 w8=0.2693 w9=0.2750
+MSE: 0.0000
+-------------------
+epoch 45 pattern 1
+-------------------
+output: 1.0000
+backProp to o1 (error=0.0000)
+o1 beta=0.0000, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w2.increment(0.0000)
+backProp from o1 to x2 over connection w5 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.0000)
+h3 delta=0.0000 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w7.increment(0.0000)
+backProp from o1 to h2 over connection w8 (error=0.0000)
+h2 delta=0.0000 beta=0.0000
+backProp from h2 to x1 over connection w3 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w3.increment(0.0000)
+backProp from h2 to x2 over connection w4 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.0000)
+backProp from o1 to h1 over connection w9 (error=0.0000)
+h1 delta=0.0000 beta=0.0000
+backProp from h1 to x1 over connection w1 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w1.increment(0.0000)
+w9.increment(0.0000)
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0262 w6=-0.2034 w7=0.0896 w8=0.2694 w9=0.2750
+-------------------
+epoch 45 pattern 2
+-------------------
+output: 1.0000
+backProp to o1 (error=0.0000)
+o1 beta=0.0000, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w2.increment(0.0000)
+backProp from o1 to x2 over connection w5 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w5.increment(0.0000)
+backProp from o1 to h3 over connection w7 (error=0.0000)
+h3 delta=0.0000 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w6.increment(0.0000)
+w7.increment(0.0000)
+backProp from o1 to h2 over connection w8 (error=0.0000)
+h2 delta=0.0000 beta=0.0000
+backProp from h2 to x1 over connection w3 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w3.increment(0.0000)
+backProp from h2 to x2 over connection w4 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w4.increment(0.0000)
+w8.increment(0.0000)
+backProp from o1 to h1 over connection w9 (error=0.0000)
+h1 delta=0.0000 beta=0.0000
+backProp from h1 to x1 over connection w1 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w1.increment(0.0000)
+w9.increment(0.0000)
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0262 w6=-0.2034 w7=0.0896 w8=0.2694 w9=0.2750
+MSE: 0.0000
+-------------------
+epoch 46 pattern 1
+-------------------
+output: 1.0000
+backProp to o1 (error=-0.0000)
+o1 beta=-0.0000, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0000)
+h3 delta=-0.0000 beta=-0.0000
+backProp from h3 to x2 over connection w6 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0000)
+h2 delta=-0.0000 beta=-0.0000
+backProp from h2 to x1 over connection w3 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0000)
+h1 delta=-0.0000 beta=-0.0000
+backProp from h1 to x1 over connection w1 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0262 w6=-0.2034 w7=0.0896 w8=0.2693 w9=0.2750
+-------------------
+epoch 46 pattern 2
+-------------------
+output: 1.0000
+backProp to o1 (error=0.0000)
+o1 beta=0.0000, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w2.increment(0.0000)
+backProp from o1 to x2 over connection w5 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w5.increment(0.0000)
+backProp from o1 to h3 over connection w7 (error=0.0000)
+h3 delta=0.0000 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w6.increment(0.0000)
+w7.increment(0.0000)
+backProp from o1 to h2 over connection w8 (error=0.0000)
+h2 delta=0.0000 beta=0.0000
+backProp from h2 to x1 over connection w3 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w3.increment(0.0000)
+backProp from h2 to x2 over connection w4 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w4.increment(0.0000)
+w8.increment(0.0000)
+backProp from o1 to h1 over connection w9 (error=0.0000)
+h1 delta=0.0000 beta=0.0000
+backProp from h1 to x1 over connection w1 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w1.increment(0.0000)
+w9.increment(0.0000)
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0263 w6=-0.2034 w7=0.0896 w8=0.2694 w9=0.2750
+MSE: 0.0000
+-------------------
+epoch 47 pattern 1
+-------------------
+output: 1.0000
+backProp to o1 (error=-0.0000)
+o1 beta=-0.0000, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0000)
+h3 delta=-0.0000 beta=-0.0000
+backProp from h3 to x2 over connection w6 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0000)
+h2 delta=-0.0000 beta=-0.0000
+backProp from h2 to x1 over connection w3 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0000)
+h1 delta=-0.0000 beta=-0.0000
+backProp from h1 to x1 over connection w1 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0263 w6=-0.2034 w7=0.0896 w8=0.2693 w9=0.2750
+-------------------
+epoch 47 pattern 2
+-------------------
+output: 1.0000
+backProp to o1 (error=-0.0000)
+o1 beta=-0.0000, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0000)
+h3 delta=-0.0000 beta=-0.0000
+backProp from h3 to x2 over connection w6 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0000)
+h2 delta=-0.0000 beta=-0.0000
+backProp from h2 to x1 over connection w3 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0000)
+h1 delta=-0.0000 beta=-0.0000
+backProp from h1 to x1 over connection w1 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0262 w6=-0.2034 w7=0.0896 w8=0.2693 w9=0.2750
+MSE: 0.0000
+-------------------
+epoch 48 pattern 1
+-------------------
+output: 1.0000
+backProp to o1 (error=0.0000)
+o1 beta=0.0000, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w2.increment(0.0000)
+backProp from o1 to x2 over connection w5 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=0.0000)
+h3 delta=0.0000 beta=0.0000
+backProp from h3 to x2 over connection w6 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w7.increment(0.0000)
+backProp from o1 to h2 over connection w8 (error=0.0000)
+h2 delta=0.0000 beta=0.0000
+backProp from h2 to x1 over connection w3 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w3.increment(0.0000)
+backProp from h2 to x2 over connection w4 (error=0.0000)
+x2 delta=0.0000, no beta as INPUT layer
+w8.increment(0.0000)
+backProp from o1 to h1 over connection w9 (error=0.0000)
+h1 delta=0.0000 beta=0.0000
+backProp from h1 to x1 over connection w1 (error=0.0000)
+x1 delta=0.0000, no beta as INPUT layer
+w1.increment(0.0000)
+w9.increment(0.0000)
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0262 w6=-0.2034 w7=0.0896 w8=0.2694 w9=0.2750
+-------------------
+epoch 48 pattern 2
+-------------------
+output: 1.0000
+backProp to o1 (error=-0.0000)
+o1 beta=-0.0000, no delta as OUTPUT layer
+backProp from o1 to x1 over connection w2 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to x2 over connection w5 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h3 over connection w7 (error=-0.0000)
+h3 delta=-0.0000 beta=-0.0000
+backProp from h3 to x2 over connection w6 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h2 over connection w8 (error=-0.0000)
+h2 delta=-0.0000 beta=-0.0000
+backProp from h2 to x1 over connection w3 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+backProp from h2 to x2 over connection w4 (error=-0.0000)
+x2 delta=-0.0000, no beta as INPUT layer
+backProp from o1 to h1 over connection w9 (error=-0.0000)
+h1 delta=-0.0000 beta=-0.0000
+backProp from h1 to x1 over connection w1 (error=-0.0000)
+x1 delta=-0.0000, no beta as INPUT layer
+connections: w1=-0.9523 w2=0.8034 w3=-0.9475 w4=-0.4462 w5=0.0262 w6=-0.2034 w7=0.0896 w8=0.2693 w9=0.2750
+MSE: 0.0000
+Breaking from loop as weights have not changed this epoch
+
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+PATTERNS = [
+    1 0;
+    1 1;
+];
+
+TARGETS = [
+    1;
+    1;
+];
+
+X1 = Node('x1', NodeType.INPUT);
+X2 = Node('x2', NodeType.INPUT);
+H1 = Node('h1', NodeType.HIDDEN, ActivationFunction.SIGMOID);
+H2 = Node('h2', NodeType.HIDDEN, ActivationFunction.SIGMOID);
+H3 = Node('h3', NodeType.HIDDEN, ActivationFunction.SIGMOID);
+O =  Node('o1', NodeType.OUTPUT, ActivationFunction.SUM);
+
+C1 = Connection('w1', X1, H1,  0.3);
+C2 = Connection('w2', X1, O,   0.2);
+C3 = Connection('w3', X1, H2,  0.1);
+C4 = Connection('w4', X2, H2, -0.2);
+C5 = Connection('w5', X2, O,   0.2);
+C6 = Connection('w6', X2, H3,  0.2);
+C7 = Connection('w7', H3, O,  -0.2);
+C8 = Connection('w8', H2, O,   0.3);
+C9 = Connection('w9', H1, O,   0.2);
+
+global CONNECTIONS
+CONNECTIONS = [C1, C2, C3, C4, C5, C6, C7, C8, C9];
+
+LEARN_RATE = 1.0;
+MAX_EPOCHS = 100;
+MIN_WEIGHT_DIFF = 0.00001;
+[NUM_PATTERNS,~] = size(PATTERNS);
+
+fprintf ('INITIAL VALUES\nREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH\n')
+fprintf ('LEARN_RATE: %.4f\n', LEARN_RATE)
+fprintf ('MAX_EPOCHS: %.4f', MAX_EPOCHS)
+logWeights()
+
+for epoch = 1:MAX_EPOCHS
+
+    weightsBefore = extractWeights();
+    TSS = 0;
+    for p = 1:NUM_PATTERNS
+
+        fprintf ('\nREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-\nepoch %1d pattern %1d\nREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-', epoch, p)
+
+        pattern = PATTERNS(p, :);
+        target = TARGETS(p,:);
+
+        % Do the forward pass (starting with the output node -
+        % which will recursively call back to the lower layers)
+        out = O.calculateOutput(pattern);
+        fprintf ('\noutput: %.4f', out)
+
+        % Update TSS
+        error = target - out;
+        TSS = TSS + (error^2);
+
+        % Now do the back-prop. Again, the Node.m class
+        % will recursively push the beta back to the
+        % lower layers.
+        O.backProp(error, LEARN_RATE);
+
+        % log the weights after each pattern
+        logWeights()
+
+    end
+
+    % log the MSE after each epoch
+    MSE = TSS / NUM_PATTERNS;
+    fprintf ('\nMSE: %.4f', MSE)
+
+    % exit if nothing has changed (presume converged)
+    weightsAfter = extractWeights();
+    if not(weightsChanged(weightsBefore, weightsAfter, MIN_WEIGHT_DIFF))
+        fprintf ('\nBreaking from loop as weights have not changed this epoch')
+        break
+    end
+
+end
+
+fprintf ('\n\n')
+
+function logWeights()
+    global CONNECTIONS
+    fprintf ('\nconnections: ')
+    for i=1:length(CONNECTIONS)
+        fprintf('%s=%.4f ', CONNECTIONS(i).id, CONNECTIONS(i).weight)
+    end
+end
+
+function weights = extractWeights()
+    global CONNECTIONS
+    weights=zeros(length(CONNECTIONS));
+    for i=1:length(CONNECTIONS)
+        weights(i) = CONNECTIONS(i).weight;
+    end
+end
+
+function changed = weightsChanged(before, after, minDiff)
+    changed = false;
+    diff = before - after;
+    for i=1:length(diff)
+        if abs(diff(i)) > minDiff
+            changed = true;
+            break;
+        end
+    end
+end
+##### SOURCE END #####
+--></body></html>
