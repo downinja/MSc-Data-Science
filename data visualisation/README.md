@@ -8,5 +8,5 @@ There were three coursework assignments for the Data Visualisation module:
 	
 The latter was the most involved, with the 2016 usage statistics comprising some 9.45 million rows of data. See the PDF report for more details; a couple of nice charts which came out of it are shown below. 
 
-![A plot of the busiest journeys resembling constellations in the night sky](MSc-Data-Science/data visualisation/constellations.png)
-![A bubble chart of the busiest docking stations](MSc-Data-Science/data visualisation/bubbles.png)
+![A plot of the busiest journeys resembling constellations in the night sky](https://github.com/downinja/MSc-Data-Science/blob/master/data%20visualisation/constellations.png?raw=true)
+![A bubble chart of the busiest docking stations](https://github.com/downinja/MSc-Data-Science/blob/master/data%20visualisation/bubbles.png?raw=true)
