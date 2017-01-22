@@ -1,0 +1,2125 @@
+---
+title: "MLSDM Assignment 1"
+author: "John Downing"
+output:
+  html_document:
+    df_print: paged
+    theme: cerulean
+  pdf_document: default
+---
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# Answers in boxes with this colour, below.
+</span></div>
+
+```{r commentnote}
+# See also inline comments with code.
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r sysinfo}
+# System info.
+version
+date()
+```
+
+```{r libraries, message=FALSE, warning=FALSE}
+# Load libraries.
+require(car)
+require(class)
+require(colorspace)
+require(cowplot)
+require(GGally)
+require(gbm) 
+require(glmnet)
+require(gplots)
+require(ggplot2)
+require(ISLR)
+require(leaps)
+require(MASS)
+require(randomForest)
+require(tree)
+```
+
+```{r setseed}
+# Set deliberate seed, so can reproduce results.
+set.seed(100)
+```
+
+```{r helperfunctions}
+
+# Helper functions.
+
+# This is just used to blat the workspace between questions - to help keep them self-contained.
+# Less chance of a bug being caused by unwittingly using a variable from a previous question, etc.
+clear_workspace <- function() {
+  rm(
+    list = ls(envir = .GlobalEnv)[!ls(envir = .GlobalEnv) %in% c("best_knn", "clear_workspace")], 
+    envir = .GlobalEnv
+  )
+}
+
+# There's a lot of repetition in calls to various KNN models, primarily around looping over
+# values of k and printing the confusion matrix for the best one. So this function just 
+# allows this to be factored out for re-use.
+best_knn <- function(
+  maxk, 
+  train.X, 
+  test.X, 
+  train.Y, 
+  test.Y) {
+
+  err = vector(mode = "numeric", length = maxk)
+  
+  for (k in 1 : maxk) {
+    knn.pred <- knn(
+      train = train.X, 
+      test = test.X, 
+      cl = train.Y, 
+      k = k
+    )
+    err[k] <- mean(knn.pred != test.Y)
+  }
+    
+  # Plot k vs err
+    print(ggplot() +
+    geom_point(
+      alpha = 0.4,
+      aes(
+        x = 1:maxk,
+        y = err
+      )
+    ) + 
+    ggtitle("Classification Error for different values of K") + 
+    labs(
+      x = "k",
+      y = "error"  
+    )
+  )
+  
+  # Find the value of k which had the minimum error.
+  bestk <- which.min(err)
+  print(sprintf("best k = %d", bestk))
+  
+  # Now retrain the model with the best value of k. 
+  knn.pred <- knn(
+    train = train.X, 
+    test = test.X, 
+    cl = train.Y, 
+    k = bestk
+  )
+
+  # Output the percentage of correct predictions for best value of k.
+  print(sprintf("percentage correct = %.2f", 100*mean(knn.pred == test.Y)))
+  
+  # Output the prediction error for best value of k.
+  print(sprintf("prediction error = %.4f", mean(knn.pred != test.Y)))
+    
+  # Output the confusion matrix for best value of k.
+  print(table(
+    "Predicted" = knn.pred, 
+    "Actual" = test.Y
+  ))
+}
+
+```
+
+### Week 5
+
+####Exercise 10
+This question should be answered using the Weekly data set, which is part of the ISLR package.
+
+```{r attach.weekly}
+# Attach the dataframe, for convenience.
+attach(Weekly)
+```
+
+<span style="color:#317eac;">(a)</span> Produce some numerical and graphical summaries of the Weekly data. Do there appear to be any patterns?
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below; as with the SMarket data, the only obvious relationship - from visual inspection - is between Year and Volume, which are positively correlated (r=0.84).
+</span></div>
+
+
+```{r eyeball.weekly}
+# Eyeball column names.
+names(Weekly)
+```
+
+```{r weekly.dimensions}
+# Check data dimensions.
+dim(Weekly)
+```
+
+```{r weekly.descriptives}
+# Print summary statistics.
+summary(Weekly)
+```
+
+```{r weekly.plot.correlations, message=FALSE, warning=FALSE, fig.height=20, fig.width=20}
+# Plot correlation matrix.
+ggpairs(
+  data = Weekly,
+  mapping = aes(
+    colour = Direction,
+    alpha = 0.4
+  )
+)
+```
+
+```{r weekly.check.correlations}
+# Check correlation values (excluding Direction, since this is categorical).
+cor(Weekly[,-9])
+```
+
+```{r weekly.volume.by.year, fig.height=7.5, fig.width=15}
+# Year and Volume appear correlated, plot the mean volume (plus indication of daily range) per year. 
+means <- aggregate(
+  formula = Volume ~ Year, 
+  data = Weekly, 
+  FUN = mean
+)
+
+ggplot() +
+geom_point(
+  data = Weekly, 
+  alpha = 0.4,
+  aes(
+    x = Year, 
+    y = Volume
+  )
+) + 
+geom_line(
+  data = means,
+  alpha = 0.4,
+  colour = "blue",
+  aes(
+    x = Year, 
+    y = Volume
+  )
+) + 
+ggtitle("Volume / Mean Volume by Year") + 
+labs(
+  x = "Year",
+  y = "Volume"  
+)
+
+```
+
+<span style="color:#317eac;">(b)</span> Use the full data set to perform a logistic regression with Direction as the response and the five lag variables plus Volume as predictors. Use the summary function to print the results. Do any of the predictors appear to be statistically significant? If so, which ones?
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below; Lag2 appears to be statistically significant (p < 0.05), with a coefficient of 0.05844. 
+</span></div>
+
+```{r weekly.glm.all.predictors}
+# Fit a glm model to our data.
+glm.fit <- glm(
+  formula = Direction~Lag1+Lag2+Lag3+Lag4+Lag5+Volume, 
+  data = Weekly, 
+  family = binomial
+)
+# Output summary stats.
+summary(glm.fit)
+```
+
+<span style="color:#317eac;">(c)</span> Compute the confusion matrix and overall fraction of correct predictions. Explain what the confusion matrix is telling you about the types of mistakes made by logistic regression.
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below. The confusion matrix is telling us which predictions our model got right (true negative for Down and true positive for Up), as well as which predictions it got wrong (false negative for Down - when the actual Direction was Up - and false positive for Up, when the actual direction was Down.
+
+In this case, the model got a total of (54+557)/1089 predictions correct, or 56.11% (increasing to 56.43% if we just take the cases where the model predicts Up). This is better than chance, although just predicting the majority class (48+557 actual instances of Up) would have resulted in 55.55% correct predictions. Of course, all of this is based on a single data set rather than a training/test split - so we have no idea how these percentages will generalise.
+</span></div>
+
+```{r}
+# Use the glm model to predict the probability that Direction is Up, given just the predictors.
+glm.probs <- predict(
+  object = glm.fit, 
+  type = "response"
+)
+
+# Translate the probabilities into categorical responses.
+numrows <- nrow(Weekly)
+glm.pred <- rep("Down", numrows)
+glm.pred[glm.probs >.5] = "Up"
+
+# Output the confusion matrix.
+table(
+  "Predicted" = glm.pred, 
+  "Actual" = Direction
+) 
+
+# Output the fraction of correct predictions.
+sprintf("fraction of correct predictions: %.4f", mean(glm.pred == Direction))
+```
+
+<span style="color:#317eac;">(d)</span> Now fit the logistic regression model using a training data period from 1990 to 2008, with Lag2 as the only predictor. Compute the confusion matrix and the overall fraction of correct predictions for the held out data (that is, the data from 2009 and 2010).
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below. Using only Lag2 as predictor, and with a training/test split of the data around 2009, we achieve 62.50% correct predictions (rising to 64.29% if we only consider the cases where the model predicts Down).
+</span></div>
+
+```{r}
+# Create our "binary filter" to apply to the dataframe.
+train <- (Year < 2009)
+
+# Slice out the data where the filter values are FALSE e.g. Year >= 2009. This becomes our test data set.
+Weekly.test <- Weekly[!train,]
+Direction.test <- Direction[!train]
+numrows.test <- nrow(Weekly.test)
+```
+
+```{r}
+# Fit a glm model to the subset of the Weekly data which matches filter values of TRUE (e.g. Year < 2009).
+# Note that we're only using Lag2 as predictor, as instructed.
+glm.fit <- glm(
+  formula = Direction~Lag2, 
+  data = Weekly, 
+  family = binomial, 
+  subset = train
+) 
+# Use the glm model to predict the probability that Direction is Up, given just the predictors.
+glm.probs <- predict(
+  object = glm.fit, 
+  newdata = Weekly.test, 
+  type = "response"
+)
+
+# Translate the probabilities into categorical responses.
+glm.pred <- rep("Down", numrows.test)
+glm.pred[glm.probs >.5] = "Up"
+
+# Output the confusion matrix.
+table(
+  "Predicted" = glm.pred, 
+  "Actual" = Direction.test
+)
+
+# Output the fraction of correct predictions.
+sprintf("fraction of correct predictions: %.4f", mean(glm.pred == Direction.test))
+```
+
+<span style="color:#317eac;">(g)</span> Repeat (d) using KNN with K=1
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+With KNN (k=1), we get 50.96% correct predictions - and a much more even split between Up and Down.
+</span></div>
+
+```{r}
+# Create test/training matricies from Lag2 column. 
+train.X <- as.matrix(Lag2[train])
+test.X <- as.matrix(Lag2[!train])
+Direction.train <- Direction[train]
+
+knn.pred = knn(
+  train = train.X, 
+  test = test.X, 
+  cl = Direction.train, 
+  k = 1
+)
+
+# Output the confusion matrix.
+table(
+  "Predicted" = knn.pred, 
+  "Actual" = Direction.test
+)
+
+# Output the fraction of correct predictions.
+sprintf("fraction of correct predictions: %.4f", mean(knn.pred == Direction.test))
+```
+
+<span style="color:#317eac;">(h)</span> Which of these methods appears to provide the best results on this data?
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# Logistic regression provides better results than KNN (with K=1); 62.50% correct predictions vs 50.96%.
+</span></div>
+
+<span style="color:#317eac;">(i)</span> Experiment with different combinations of predictors, including possible transformations and interactions, for each of the methods. Report the variables, method, and associated confusion matrix that appears to provide the best results on the held out data. Note that you should also experiment with values for K in the KNN classifier.
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below; adding an interaction between Lag1 and the product of Lag1 and Lag2 to the logistic regression formula increases the percentage of correct predictions to 64.42%. Despite trying values of k from 1:100, KNN could not match this (the best value of k being 72, with 61.54% correct classifications).
+
+Note that the question explicity asks us to evaluate which variable "provide the best results on the held out data", even though this means that we're implicitly tuning our model to the test data (rather than using e.g. cross-validation on the training set).
+</span></div>
+
+*# Logistic Regression*
+
+```{r}
+glm.fit <- glm(
+  formula = Direction~Lag2+Lag1:I(Lag1*Lag2), 
+  data = Weekly, 
+  family = binomial, 
+  subset = train
+) 
+
+glm.probs <- predict(
+  object = glm.fit, 
+  newdata = Weekly.test, 
+  type = "response"
+)
+
+glm.pred <- rep("Down", numrows.test)
+glm.pred[glm.probs >.5] <- "Up"
+
+table(
+  "Predicted" = glm.pred, 
+  "Actual" = Direction.test
+)
+
+sprintf("fraction of correct predictions: %.4f", mean(glm.pred == Direction.test))
+```
+
+*# KNN*
+
+```{r, fig.height=7.5, fig.width=15}
+best_knn(100, train.X, test.X, Direction.train, Direction.test)
+```
+
+####Exercise 12
+<span style="color:#317eac;">(a)</span> Write a function, Power(), that prints out the result of raising 2 to the 3rd power. In other words, your function should compute 2<sup>3</sup> and print out the results.
+
+```{r}
+power <- function() {
+    sprintf("2 ^ 3 = %.2f", (2 ^ 3))
+}
+power()
+```
+
+
+<span style="color:#317eac;">(b)</span> Create a new function, Power2(), that allows you to pass any two numbers, x and a, and prints out the value of x^a.
+
+```{r}
+power2 <- function(x, a) {
+    sprintf("power2(%d,%d) = %.2f", x, a, (x^a))
+}
+```
+
+<span style="color:#317eac;">(c)</span> Using the Power2() function that you just wrote, compute 10<sup>3</sup>, 8<sup>17</sup>, and 131<sup>3</sup>.
+
+```{r}
+power2(10,3) 
+power2(8,17) 
+power2(131,3)
+```
+
+<span style="color:#317eac;">(d)</span> Now create a new function, Power3(), that actually returns the result x^a as an R object, rather than simply printing it to the screen.
+
+```{r}
+power3 <- function(x, a) {
+    return(x^a)
+}
+```
+
+<span style="color:#317eac;">(e)</span> Now using the Power3() function, create a plot of f(x)=x<sup>2</sup>. The x-axis should display a range of integers from 1 to 10, and the y-axis should display x<sup>2</sup>. Label the axes appropriately, and use an appropriate title for the figure. Consider displaying either the x-axis, the y-axis, or both on the log-scale. 
+
+```{r, fig.height=7.5, fig.width=15}
+x <- 1:10
+xsquared <- power3(x,2)
+
+ggplot() +
+geom_line(
+  alpha = 0.4,
+  aes(
+    x = x,
+    y = xsquared
+  )
+) + 
+scale_x_log10() + 
+scale_y_log10() +
+ggtitle("x^2 (log10 x and y axes)") + 
+labs(
+  x = "x",
+  y = "x^2"  
+)
+
+```
+
+<span style="color:#317eac;">(f)</span>  Create a function, PlotPower(), that allows you to create a plot of x against x^a for a fixed a and for a range of values of x. For instance, if you call <code>PlotPower (1:10,3)</code> then a plot should be created with an x-axis taking on values 1,2,...,10, and a y-axis taking on values 1<sup>3</sup>,2<sup>3</sup>,...,10<sup>3</sup>.
+
+```{r}
+PlotPower <- function(xrange, pow) {
+  
+ label <- paste("x^", pow, sep="")
+  plotline = geom_line(
+    aes(
+      x = xrange, 
+      y = power3(xrange, pow)
+    )
+  ) 
+  plotlabs = labs(
+    x = "x",
+    y = label
+  )
+  p1 <- ggplot() + plotline + ggtitle(label) + plotlabs
+  
+  label2 <- paste(label, "(log10 x-axis)", sep=" ")
+  p2 <- ggplot() + plotline + ggtitle(label2) + plotlabs + scale_x_log10()
+  
+  label3 <- paste(label, "(log10 y-axis)", sep=" ")
+  p3 <- ggplot() + plotline + ggtitle(label3) + plotlabs + scale_y_log10()
+  
+  label4 <- paste(label, "(log10 x and y axes)", sep=" ") 
+  p4 <- ggplot() + plotline + ggtitle(label4) + plotlabs + scale_x_log10() + scale_y_log10()
+
+  plot_grid(p1, p2, p3, p4)
+}
+```
+
+
+```{r, fig.height=7.5, fig.width=15}
+PlotPower(1:10,3)
+```
+
+### Week 7
+Finish Exercise 10 from last homework
+
+#####Exercise 10
+<span style="color:#317eac;">(e)</span> Repeat (d) using LDA.
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+Using LDA, we (again) obtain 62.50% correct predictions - and the same confusion matrix as with logistic regression.
+</span></div>
+
+```{r}
+
+lda.fit <- lda(
+  formula = Direction~Lag2, 
+  data = Weekly, 
+  subset = train
+)
+
+lda.pred <- predict(
+  object = lda.fit, 
+  newdata = Weekly.test
+)
+
+lda.class <- lda.pred$class
+
+table(
+  "Predicted" = lda.class,
+  "Actual" = Direction.test
+)
+
+sprintf("fraction of correct predictions: %.4f", mean(lda.class == Direction.test))
+```
+
+<span style="color:#317eac;">(f)</span> Repeat (d) using QDA.
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+With QDA, we obtain 58.65% correct predictions (and always predict Up).
+</span></div>
+
+
+```{r}
+qda.fit <- qda(
+  formula = Direction~Lag2, 
+  data = Weekly, 
+  subset = train
+)
+
+qda.pred <- predict(
+  object = qda.fit, 
+  newdata = Weekly.test
+)
+
+qda.class <- qda.pred$class
+
+table(
+  "Predicted" = qda.class, 
+  "Actual" = Direction.test
+)
+
+sprintf("fraction of correct predictions: %.4f", mean(qda.class == Direction.test))
+```
+
+```{r}
+# Housekeeping.
+clear_workspace()
+detach(Weekly)
+```
+
+####Exercise 11
+<span style="color:#317eac;">(a)</span> Create a binary variable, mpg01, that contains a 1 if mpg contains a value above its median, and a 0 if mpg contains a value below its median.
+
+```{r, message=FALSE, warning=FALSE}
+# Create a factor column for our mpg01 variable.
+mpg.median <- median(Auto$mpg)
+mpg01 <- as.factor(ifelse(Auto$mpg < mpg.median, 0, 1))
+# Create a new version of Auto with the mpg01 column added.
+Auto <- data.frame(Auto, mpg01)
+# Remove temporary variables to avoid confusion due to e.g. shadowing.
+rm(mpg.median, mpg01)
+# Only attach our Auto frame now, to avoid confusion due to e.g. shadowing.
+# Use of attach/detach is of course debatable due to these issues..
+attach(Auto)
+summary(Auto)
+```
+
+<span style="color:#317eac;">(b)</span> Explore the data graphically in order to investigate the association between mpg01 and the other features. Which of the other features seem most likely to be useful in predicting mpg01? Scatterplots and boxplots may be useful tools to answer this question. Describe your findings.
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+All of the variables except name appear to be correlated with mpg - and by extension, mpg01 - to some extent. However, there are likely to be significant colinearities between them - with more cylinders, displacement and horsepower, for example, resulting in greater weight (e.g. a bigger engine). 
+
+VIF results from a fitted linear model confirmed this; iteratively removing predictors with VIF > 5 left only cylinders, acceleration, year and origin - with only cylinders, year and origin being significantly correlated. Of these, there is a definite suggestion of non-linearity from the scatter plot of cylinders vs mpg - and a polynomial of degree three proved significant.
+</span></div>
+
+```{r auto.plot.correlations, message=FALSE, warning=FALSE, fig.height=7.5, fig.width=15}
+# Plot correlation matrix - using ggpairs (since this automatically gives us both scatterplots and boxplots).
+ggpairs(
+  data = Auto[,-9],
+  mapping = aes(
+    colour = mpg01,
+    alpha = 0.4
+  )
+)
+
+# Check for colinearities. 
+glm.fit <- glm(
+  formula = mpg01~cylinders+displacement+horsepower+weight+acceleration+year+origin,
+  family = binomial,
+  data = Auto
+)
+vif(glm.fit)
+
+# Remove any predictors with vif > 5 and repeat until all < 5
+glm.fit <- update(glm.fit, . ~ . -displacement)
+vif(glm.fit)
+
+# Summary of our final model - only cylinders, year and origin have significant p values
+summary(glm.fit)
+
+glm.fit <- update(glm.fit, . ~ . -acceleration)
+
+# Checking for any significant polynomials since relationship between cylinders and mpg appears non-linear
+glm.fit <- update(glm.fit, . ~ . - cylinders + poly(cylinders,3))
+summary(glm.fit)
+
+formula <- as.formula(mpg01 ~ cylinders + I(cylinders^3) + year + origin) 
+
+```
+
+<span style="color:#317eac;">(c)</span> Split the data into a training set and a test set.
+
+```{r}
+# Am using a 50/50 split per the ISLR examples
+train <- sample(nrow(Auto), nrow(Auto)/2)
+Auto.train <- Auto[train,]
+Auto.test <- Auto[-train,]
+mpg01.test <- mpg01[-train]
+numrows.test <- nrow(Auto.test)
+```
+
+<span style="color:#317eac;">(d)</span> Perform LDA on the training data in order to predict mpg01 using the variables that seemed most associated with mpg01 in (b). What is the test error of the model obtained?
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# The test error for LDA, using the specified predictors, is 9.69%.
+</span></div>
+
+```{r}
+lda.fit <- lda(
+  formula = formula, 
+  data = Auto.train
+)
+
+lda.pred <- predict(
+  object = lda.fit, 
+  newdata = Auto.test
+)
+
+lda.class = lda.pred$class
+
+table(
+  "Predicted" = lda.class, 
+  "Actual" = mpg01.test
+)
+
+sprintf("test error: %.4f", mean(lda.class != mpg01.test))
+```
+
+<span style="color:#317eac;">(e)</span> Perform QDA on the training data in order to predict mpg01 using the variables that seemed most associated with mpg01 in (b). What is the test error of the model obtained?
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# The test error for QDA, using the specified predictors, is 8.16%.
+</span></div>
+
+```{r}
+qda.fit <- qda(
+  formula = formula,
+  data = Auto.train
+)
+
+qda.pred <- predict(
+  object = qda.fit, 
+  newdata = Auto.test
+)
+
+qda.class <- qda.pred$class
+
+table(
+  "Predicted" = qda.class, 
+  "Actual" = mpg01.test
+)
+
+sprintf("test error: %.4f", mean(qda.class != mpg01.test))
+```
+
+<span style="color:#317eac;">(f)</span> Perform logistic regression on the training data in order to predict mpg01 using the variables that seemed most associated with mpg01 in (b). What is the test error of the model obtained?
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# The test error for logistic regression, using the specified predictors, is 9.18%.
+</span></div>
+
+```{r}
+glm.fit <- glm(
+  formula = formula, 
+  data = Auto.train, 
+  family = binomial
+) 
+
+glm.probs <- predict(
+  object = glm.fit, 
+  newdata = Auto.test, 
+  type = "response"
+)
+
+glm.pred <- rep(0, numrows.test)
+glm.pred[glm.probs >.5] = 1
+
+table(
+  "Predicted" = glm.pred, 
+  "Actual" = mpg01.test
+)
+
+sprintf("test error: %.4f", mean(glm.pred != mpg01.test))
+```
+
+<span style="color:#317eac;">(g)</span> Perform KNN on the training data, with several values of K, in order to predict mpg01. Use only the variables that seemed most associated with mpg01 in (b). What test errors do you obtain? Which value of K seems to perform the best on this data set?
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See plot below of k vs test error. The test error for the best k (k=8), using the specified predictors, is 8.16%. Note that lower test error rates (~6%) are possible by including more predictors in the model.
+</span></div>
+
+```{r, fig.height=7.5, fig.width=15}
+
+# KNN
+cylinders3 = cylinders ^ 3
+standardized.X <- scale(data.frame(cylinders3, Auto)[, 1:9]) 
+predictors = c("cylinders", "cylinders3", "year", "origin")
+train.X <- standardized.X[train, predictors] 
+test.X <- standardized.X[-train, predictors] 
+train.Y <- mpg01[train] 
+test.Y <- mpg01[-train] 
+best_knn(100, train.X, test.X, train.Y, test.Y)
+```
+
+
+```{r}
+clear_workspace()
+detach(Auto)
+```
+
+####Exercise 13
+Using the Boston data set, fit classification models in order to predict whether a given suburb has a crime rate above or below the median. Explore logistic regression, LDA, and KNN models using various subsets of the predictors. Describe your findings.
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;">
+<span># See below (especially in-line comments). I adopted two subsets of predictors, one based on p-values (having adjusted for VIF), the other based on best subsets. Logistic regression performed better than LDA, with the "significant predictors" model performing better (test error 9.88%) than best subset (test error of 11.46%). 
+
+However KNN (k=1) beat both parametric models, with a "significant predictors" test error of 3.95%. This is not surprising, since the data represents geographical areas and is more likely to be consistent within suburbs than between them. Especially in downtown regions (presumably observations ~375 to ~475) which may be special cases. 
+</span></div>
+
+```{r, message=FALSE, warning=FALSE}
+# As before - construct our new factor variable, add it to our dataframe, cleanup, and then attach.
+crim.median <- median(Boston$crim)
+crim01 <- as.factor(ifelse(Boston$crim < crim.median, 0, 1))
+Boston <- data.frame(Boston, crim01)
+rm(crim.median, crim01)
+attach(Boston)
+```
+
+```{r boston.plot.correlations, message=FALSE, warning=FALSE, fig.height=20, fig.width=20}
+# Show scatterplots and boxplots.
+ggpairs(
+  data = Boston[,-9],
+  mapping = aes(
+    colour = crim01,
+    alpha = 0.4
+  )
+)
+```
+
+```{r, fig.height=7.5, fig.width=15}
+# Check for colinearities. 
+glm.fit <- glm(
+  formula = crim01~zn+indus+chas+nox+rm+age+dis+rad+tax+ptratio+black+lstat+medv,
+  data = Boston,
+  family = binomial
+)
+vif(glm.fit)
+
+# Remove any predictors with vif > 5 and repeat until all < 5
+glm.fit <- update(glm.fit, . ~ . -medv)
+vif(glm.fit)
+
+# Check which predictors are significant - leaving zn, nox, rm, dis, rad, tax, ptratio.
+summary(glm.fit)
+
+glm.fit <- update(glm.fit, . ~ zn+nox+rm+dis+rad+tax+ptratio)
+
+# Check for non-linearity (plot residuals). 
+
+# Interestingly, plotting the residuals vs crim (not crim01) shows that things go a bit crazy around 
+# row 400. A plot of glm.fit flags up rows 381, 406 and 419 - which do appear to be outliers, having 
+# the three highest values of crim (all above 73, vs a median of 0.2565). Presumably these are city 
+# centre areas; they do have higher tax and lower dis values. Maybe splines would help with handling 
+# this(?)
+
+ggplot() +
+geom_point(
+  alpha = 0.4,
+  aes(
+    x = 1:nrow(Boston),
+    y = lm(crim ~ zn+nox+rm+dis+rad+tax+ptratio)$residuals
+  )
+) + 
+ggtitle("Residuals for crim~zn+nox+rm+dis+rad+tax+ptratio") + 
+labs(
+  x = "observation",
+  y = "residual"  
+)
+
+# The residuals from the binomial model is consistent with this idea, in that there are a series
+# of flat lines (presumably similar types of suburb) interspersed by small regions of variability. 
+# Possibly there is some kind of geographical ordering to the Boston data that results in this.
+
+ggplot() +
+geom_point(
+  alpha = 0.4,
+  aes(
+    x = 1:nrow(Boston),
+    y = glm.fit$residuals
+  )
+) + 
+scale_y_continuous(
+  limits = c(0, 10),
+  oob = scales::squish
+) +
+ggtitle("Residuals for crim01~zn+nox+rm+dis+rad+tax+ptratio") + 
+labs(
+  x = "observation",
+  y = "residual"  
+)
+
+
+# By way of an alternative to basing the model on p-values, I'm checking best subsets.
+# Note I'm using Cp as estimate of test error, on the whole data set, for convenience.
+nvmax <- 13
+Boston.best = regsubsets(
+  x = crim01~zn+indus+chas+nox+rm+age+dis+rad+tax+ptratio+black+lstat+medv,
+  data=Boston, 
+  nvmax=nvmax
+)
+best.summary = summary(Boston.best)
+bestnv <- which.min(best.summary$cp)
+sprintf("best nv: %d", bestnv)
+Boston.best.coef <- coef(Boston.best, bestnv) 
+print(names(Boston.best.coef[-1]))
+
+```
+
+```{r}
+# Create training/test split
+train <- sample(nrow(Boston), nrow(Boston)/2) # sticking with 50/50 split per ISLR examples.
+Boston.train <- Boston[train,]
+Boston.test <- Boston[-train,]
+numrows.test <- nrow(Boston.test)
+crim01.test <- crim01[-train]
+
+significant.predictors <- as.formula(crim01 ~ zn+nox+rm+dis+rad+tax+ptratio)
+best.subset <- as.formula(crim01~zn+nox+age+rad+black+medv)
+```
+
+*# Logistic Regression - using best subset*
+
+```{r}
+glm.fit <- glm(
+  formula = best.subset,
+  data = Boston.train, 
+  family = binomial
+) 
+
+glm.probs <- predict(
+  glm.fit, 
+  Boston.test, 
+  type="response"
+)
+
+glm.pred <- rep(0, numrows.test)
+glm.pred[glm.probs >.5] <- 1
+
+table(
+  "Predicted" = glm.pred, 
+  "Actual" = crim01.test
+)
+
+sprintf("prediction error: %.4f", mean(glm.pred != crim01.test))
+
+```
+
+*# Logistic regression - using significant predictors*
+
+```{r}
+glm.fit <- glm(
+  formula = significant.predictors,
+  data = Boston.train, 
+  family = binomial
+) 
+
+glm.probs <- predict(
+  glm.fit, 
+  Boston.test, 
+  type="response"
+)
+
+glm.pred <- rep(0, numrows.test)
+glm.pred[glm.probs >.5] <- 1
+
+table(
+  "Predicted" = glm.pred, 
+  "Actual" = crim01.test
+)
+
+sprintf("prediction error: %.4f", mean(glm.pred != crim01.test))
+```
+
+*# LDA - using best subset*
+
+```{r}
+lda.fit <- lda(
+  formula = best.subset,
+  data = Boston.train
+)
+
+lda.pred <- predict(
+  object = lda.fit, 
+  newdata = Boston.test
+)
+
+lda.class <- lda.pred$class
+
+table(
+  "Predicted" = lda.class, 
+  "Actual" = crim01.test
+)
+
+sprintf("prediction error: %.4f", mean(lda.class != crim01.test))
+```
+
+*# LDA - using significant predictors*
+
+```{r}
+lda.fit <- lda(
+  formula = significant.predictors,
+  data = Boston.train
+)
+
+lda.pred <- predict(
+  object = lda.fit, 
+  newdata = Boston.test
+)
+
+lda.class <- lda.pred$class
+
+table(
+  "Predicted" = lda.class, 
+  "Actual" = crim01.test
+)
+
+sprintf("test prediction error: %.4f", mean(lda.class != crim01.test))
+```
+
+*# KNN - Using best subset*
+
+```{r, fig.height=7.5, fig.width=15}
+maxk <- 100
+standardized.X <- scale(Boston[, 1:14]) 
+train.Y <- crim01[train] 
+test.Y <- crim01[-train] 
+
+predictors <- all.vars(best.subset[[3]])
+train.X <- standardized.X[train, predictors] 
+test.X <- standardized.X[-train, predictors] 
+best_knn(maxk, train.X, test.X, train.Y, test.Y)
+```
+
+*# KNN - Using significant predictors*
+
+```{r, fig.height=7.5, fig.width=15}
+predictors <- all.vars(significant.predictors[[3]])
+train.X <- standardized.X[train, predictors] 
+test.X <- standardized.X[-train, predictors] 
+best_knn(maxk, train.X, test.X, train.Y, test.Y)
+```
+
+### Week 9
+####Exercise 7
+In the lab, we applied random forests to the Boston data using mtry=6 and using ntree=25 and ntree=500. Create a plot displaying the test error resulting from random forests on this data set for a more comprehensive range of values for mtry and ntree. Describe the results obtained.
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below. As might be expected, prediction error is greater where values of mtry and ntree are low. This appears to be more pronounced for ntree than for mtry; the heatmap suggests that the highest errors result from ntree = 1, and it is not until values of ntree >= 50 that errors stablise. Whereas errors from values of mtry as low as 3 are quite similar. The minimum test mse (11.9062) was found with ntree = mtry = 7.
+</span></div>
+
+```{r, fig.height=7.5, fig.width=15}
+
+# Range of values for mtry (number of variables to select from).
+# There are only 13 (not including our predictor, medv), so we may as well try them all.
+mtry <- seq(1,13)
+
+# Less sure what to cover in terms of range of ntree (number of trees to build). It's
+# likely that there will be a bigger different between 2 trees vs 5, 10, etc, than there
+# will be between 100 and 200. So I'm using a sequence of 1 to 10, in steps of 1, and then
+# a sequence of 25 to 500, in steps of 25.
+ntree <- c(1:10, seq(25,500,25))
+
+# Set up a vector to contain our test errors for each combination of mtry and ntree.
+err <- vector('numeric', length(mtry) * length(ntree))
+index <- 1
+
+# And now loop through the combinations, fitting a random forest model to each.
+for (i in mtry) {
+  for (j in ntree) {
+    # fit the model to the training set
+    rf.boston <- randomForest(
+      formula = medv ~ . -crim01, # exclude crim01 from the previous question
+      data = Boston, 
+      subset = train, 
+      mtry = i, 
+      ntree = j
+    ) 
+    # predict medv from the test data
+    medv.rf <- predict(
+      object = rf.boston, 
+      newdata = Boston.test
+    ) 
+    # store the error for later
+    mse <- mean((medv.rf - Boston.test$medv) ^ 2) 
+    err[index] <- mse
+    index <- index + 1
+  }
+}
+
+# Now analyse the errors we recorded during the looop.
+min.err.index = which.min(err)
+min.err.mtry = floor(min.err.index / length(ntree))
+min.err.ntree = ntree[min.err.index - (min.err.mtry * length(ntree))]
+sprintf("min error %.4f found with mtry=%d, ntree=%d", err[min.err.index], min.err.mtry, min.err.ntree)
+
+# Do a basic 2-D plot of ntree vs error, with 13 lines representing each
+# of our 13 values of mtry.
+colors <- rainbow(max(mtry))
+lty <- c(rep(1, 8),rep(2,5))
+for (i in mtry) {
+  numx = 10 # just plotting the first 10 error values for each mtry, for clarity
+  start <- (i-1)*numx+1
+  end <- i*numx
+  errs <- err[start:end]
+  col <- colors[i]
+  if (i == 1) {
+      plot(ntree[1:numx], errs, col = col, type = "l", xlab = "ntree", ylab = "mse", ylim=c(9,65))
+    }
+    else {
+      lines(ntree[1:numx], errs, col = col, type = "l", lty = lty[i])
+    }
+}
+legend("topright", as.character(mtry), col = mtry+1, cex = 1, lty = lty, title="mtry")
+
+# We have an error that varies along two dimensions, e.g. a surface.
+# So a 3-D representation might be helpful. For which we need a matrix,
+# not a vector.
+z <- matrix(err, nrow=length(mtry), ncol=length(ntree), byrow=TRUE)
+
+# Try the default persp plot from R
+persp(
+  x = mtry, 
+  y = ntree, 
+  z = z, 
+  theta = 45, 
+  phi = 45, 
+  zlab = "mse"
+)
+
+# Also try heatmap2 from ggplot2
+heatmap.2(
+  z, 
+  Rowv = "none", 
+  Colv = "none",
+  dendrogram = "none",
+  density.info = "none",
+  trace = "none",
+  labRow = mtry,
+  labCol = ntree,
+  xlab = "ntree",
+  ylab = "mtry",
+  key.xlab = "mse",
+  col = diverge_hcl(length(mtry), c = 100, l = c(50, 90), power = 1)
+)
+```
+
+```{r}
+clear_workspace()
+detach(Boston)
+```
+
+####Exercise 8
+In the lab, a classification tree was applied to the Carseats data set after converting Sales into a qualitative response variable. Now we will seek to predict Sales using regression trees and related approaches, treating the response as a quantitative variable.
+
+```{r}
+attach(Carseats)
+```
+
+<span style="color:#317eac;">(a)</span> Split the data set into a training set and a test set.
+
+```{r}
+# Using same 50/50 split as the book.
+train <- sample(nrow(Carseats), nrow(Carseats)/2)
+Carseats.test <- Carseats[-train,] 
+```
+
+<span style="color:#317eac;">(b)</span> Fit a regression tree to the training set. Plot the tree, and interpret the results. What test MSE do you obtain?
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below. The regression tree fit to the training data uses the variables ShelveLoc, Price, CompPrice, Age &amp; Advertising, has 12 internal nodes (not including the root), 14 terminal nodes, and a residual mean deviance (sum of squared errors / (num observations - num terminal nodes)) of 2.124. The MSE against the test set was 4.7117.
+</span></div>
+```{r, fig.height=7.5, fig.width=15}
+Carseats.tree <- tree(
+  formula = Sales~., 
+  data = Carseats, 
+  subset = train
+)
+
+summary(Carseats.tree)
+plot(Carseats.tree)
+text(Carseats.tree, pretty = 0, font = 4, cex = 0.75)
+
+Carseats.pred <- predict(
+  object = Carseats.tree, 
+  newdata = Carseats.test)
+
+sprintf("test mse: %.4f", mean((Carseats.pred - Carseats.test$Sales) ^ 2))
+```
+
+<span style="color:#317eac;">(c)</span> Use cross-validation in order to determine the optimal level of tree complexity. Does pruning the tree improve the test MSE?
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below. Cross-validation shows the optimal level of tree complexity to be 14; the same as the unpruned tree.
+</span></div>
+```{r, fig.height=7.5, fig.width=15}
+# Perform the cross-validation
+Carseats.cv.tree <- cv.tree(Carseats.tree)
+
+# Output the results.
+Carseats.cv.tree
+
+# Determine the best tree size
+sprintf("best tree size: %d", 
+    Carseats.cv.tree$size[which.min(Carseats.cv.tree$dev)]
+)
+
+# Plot deviance vs tree size
+ggplot() +
+geom_line(
+  colour = "blue",
+  alpha = 0.4,
+  aes(
+    x = Carseats.cv.tree$size, 
+    y = Carseats.cv.tree$dev
+  )
+) +
+scale_x_continuous(
+  breaks = Carseats.cv.tree$size  
+) +
+ggtitle("Deviance vs Tree Size") + 
+labs(
+  x = "tree size",
+  y = "deviance"  
+)
+
+# Pruning doesn't seem to be necessary in this case
+```
+
+<span style="color:#317eac;">(d)</span> Use the bagging approach in order to analyze this data. What test MSE do you obtain? Use the importance() function to determine which variables are most important.
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below; with bagging the test MSE was 2.8308, and the most important variables were Price &amp; ShelveLoc, and then CompPrice, Age &amp; Advertising. 
+</span></div>
+
+```{r}
+# Fit randomForest model to the training data, using all predictors
+# e.g. bagging. Specify importance = TRUE so that we can use this
+# feature for later interpretation.
+Carseats.bag <- randomForest(
+  formula = Sales~., 
+  data = Carseats, 
+  subset = train, 
+  mtry = length(Carseats)-1, 
+  importance = TRUE
+) 
+
+# Print the model descriptives
+Carseats.bag
+
+# Now predict the values of Sales in the test data.
+Carseats.pred <- predict(
+  object = Carseats.bag, 
+  newdata = Carseats.test
+) 
+
+# Print/calculate the MSE from test data predictions.
+sprintf("test mse: %.4f", mean((Carseats.pred - Carseats.test$Sales) ^ 2))
+
+# See which predictors made the biggest contributions to MSE / node purity.
+importance(Carseats.bag)
+```
+
+<span style="color:#317eac;">(e)</span> Use random forests to analyze this data. What test MSE do you obtain? Use the importance() function to determine which variables are most important. Describe the effect of m, the number of variables considered at each split, on the error rate obtained.
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below. For 1 <= m <= 10, MSE ranged from 2.8172 to 5.4342, with an average of 3.3177. The importance  function suggests that Price and ShelveLoc are the two most important predictors, followed by CompPrice, and then Age and Advertising.
+
+MSE was monotonically decreasing with (or at least, not increasing) with m, with the lowest test MSE using the full 10 predictor variables. The test MSE was also similar to that from the bagging model. This suggests that the predictor variables were not strongly correlated, otherwise we would expect to see an improvement using randomForest (with its decorrelation of predictors). This was supported by a call to VIF against a standard linear model.
+</span></div>
+```{r, fig.height=7.5, fig.width=15}
+# Sales~. has 10 predictors, so we're going to build 10 trees - with each tree considering one of 1:10 variables at each split.
+mtrys <- seq(1,10)
+err <- vector('numeric', length(mtrys))
+index <- 1
+for (mtry in mtrys) {
+  # Loop round fitting each tree to the training data, 
+  # and storing it's associated test MSE.
+  Carseats.rf <- randomForest(
+    formula = Sales~., 
+    data = Carseats, 
+    subset = train, 
+    mtry = mtry, 
+    importance=FALSE # no need as we're gonna refit in a bit
+  )
+  Carseats.pred <- predict(
+    object = Carseats.rf, 
+    newdata = Carseats.test
+  ) 
+  mse <- mean((Carseats.pred - Carseats.test$Sales) ^ 2) 
+  err[index] <- mse
+  index <- index + 1
+}
+
+# Now plot the test MSE vs the number of variables considered at each split.
+plot(err)
+
+# Print some summary stats.
+sprintf("mse: min=%.4f, max=%.4f, mean=%.4f", min(err), max(err), mean(err))
+
+# Find which mtry resulted in minimum test MSE. 
+best.mtry <- which.min(err)
+sprintf("best mtry: %d", best.mtry)
+
+# Refit a tree to that value of mtry, with Importance enabled.
+Carseats.rf <- randomForest(
+    formula = Sales~., 
+    data = Carseats, 
+    subset = train, 
+    mtry = best.mtry, 
+    importance=TRUE
+)
+
+# And check each variable's contribution to MSE/node purity. 
+importance(Carseats.rf)
+
+# The best value of mtry was 10; the full number of predictors - suggesting that the 
+# predictors are not strongly correlated (otherwise we would have expected to see a
+# difference in the RF model vs bagging). Check this with VIF.
+vif(glm(formula = Sales~., data = Carseats))
+```
+
+```{r}
+clear_workspace()
+detach(Carseats)
+```
+
+####Exercise 9
+This problem involves the OJ data set which is part of the ISLR package.
+```{r}
+attach(OJ)
+```
+
+<span style="color:#317eac;">(a)</span> Create a training set containing a random sample of 800 observations, and a test set containing the remaining observations.</span>
+
+```{r}
+train <- sample(nrow(OJ), 800)
+OJ.test <- OJ[-train,] 
+```
+
+<span style="color:#317eac;">(b)</span> Fit a tree to the training data, with Purchase as the response and the other variables as predictors. Use the summary() function to produce summary statistics about the tree, and describe the results obtained. What is the training error rate? How many terminal nodes does the tree have? 
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below; the tree uses 4 predictors (LoyalCH, PriceDiff, ListPriceDiff and PctDiscMM), has 7 terminal nodes,a residual mean deviance of 793 and a training error rate of 17.13%.
+</span></div>
+```{r}
+# Fit classification tree to the training data.
+OJ.tree <- tree(
+  formula = Purchase~., 
+  data = OJ, 
+  subset = train)
+
+# Output summary info.
+summary(OJ.tree)
+```
+
+<span style="color:#317eac;">(c)</span> Type in the name of the tree object in order to get a detailed text output. Pick one of the terminal nodes, and interpret the information displayed. 
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below. Node 25 is a terminal node with definition {Purchase | LoyalCH >= 0.48285, LoyalCH < 0.764572, PriceDiff < 0.145, DiscMM >= 0.47}. This node contains 16 observations with a deviance of 7.481, and predicts a Purchase value of MM - based on 6.25% (1) CH observations vs 93.75% (15) MM. This node has the lowest residual deviance of any node; other terminal nodes have a higher percentage of MM/CH (e.g. nodes 4 and 25), but a higher deviance since they contain more observations. It is also the only node on the right hand branch of the tree which predicts MM.
+</span></div>
+
+```{r}
+print(OJ.tree)
+```
+
+<span style="color:#317eac;">(d)</span> Create a plot of the tree, and interpret the results.
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below. The variable LoyalCH appears to be the most important, as it is used both for the split at the root node and also for the split at each of the subsequent internal nodes. Also note the the entire left hand side of the tree results in predictions of MM - so the reason for having the additional LoyalCH and SalePriceMM splits must presumably be to give greater purity at the terminal nodes. Also note that almost the entire right hand branch of the tree results in predictions of CH, with only one of the four nodes predicting MM.  
+</span></div>
+```{r, fig.height=7.5, fig.width=15}
+plot(OJ.tree)
+text(OJ.tree, pretty = 0, font = 4, cex = 0.75)
+```
+
+<span style="color:#317eac;">(e)</span> Predict the response on the test data, and produce a confusion matrix comparing the test labels to the predicted test labels. What is the test error rate? 
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below; test prediction error is 0.1926 ((23+29/270)).
+</span></div>
+```{r}
+OJ.tree.pred <- predict(
+  object = OJ.tree, 
+  newdata = OJ.test, 
+  type = "class"
+)
+
+table(
+  "Predicted" = OJ.tree.pred, 
+  "Actual" = OJ.test$Purchase
+)
+
+sprintf("prediction error: %.4f", mean(OJ.tree.pred != OJ.test$Purchase))
+```
+
+<span style="color:#317eac;">(f)</span> Apply the cv.tree() function to the training set in order to determine the optimal tree size. 
+
+```{r}
+OJ.cv.tree <- cv.tree(
+  object = OJ.tree, 
+  FUN = prune.misclass)
+
+OJ.cv.tree
+```
+
+<span style="color:#317eac;">(g)</span> Produce a plot with tree size on the x-axis and cross-validated classification error rate on the y-axis.
+
+```{r, fig.height=7.5, fig.width=15}
+ggplot() +
+geom_line(
+  colour = "blue",
+  alpha = 0.4,
+  aes(
+    x = OJ.cv.tree$size, 
+    y = OJ.cv.tree$dev
+  )
+) +
+scale_x_continuous(
+  breaks = OJ.cv.tree$size  
+) +
+ggtitle("Deviance vs Tree Size") + 
+labs(
+  x = "tree size",
+  y = "deviance"  
+)
+```
+
+<span style="color:#317eac;">(h)</span> Which tree size corresponds to the lowest cross-validated classification error rate? 
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below; the lowest cross-validated error rate is found at tree size 2.
+</span></div>
+```{r}
+OJ.cv.tree.best <- OJ.cv.tree$size[which.min(OJ.cv.tree$dev)]
+sprintf("best tree size: %d", OJ.cv.tree.best)
+```
+
+<span style="color:#317eac;">(i)</span> Produce a pruned tree corresponding to the optimal tree size obtained using cross-validation. If cross-validation does not lead to selection of a pruned tree, then create a pruned tree with five terminal nodes.
+```{r}
+OJ.tree.prune <- prune.misclass(OJ.tree, best=OJ.cv.tree.best)
+```
+
+<span style="color:#317eac;">(j)</span> Compare the training error rates between the pruned and unpruned trees. Which is higher? 
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below; training error rate on the pruned tree is 18.88% - higher than on the unpruned tree (17.13%).
+</span></div>
+```{r}
+summary(OJ.tree.prune)
+```
+
+<span style="color:#317eac;">(k)</span> Compare the test error rates between the pruned and unpruned trees. Which is higher?
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below; test error rate on the pruned tree is 19.63%, only slightly higher than on the unpruned tree (19.26%).
+</span></div>
+```{r}
+OJ.tree.pred <- predict(
+  object = OJ.tree.prune, 
+  newdata = OJ.test, 
+  type = "class"
+)
+
+table(
+  "Predicted" = OJ.tree.pred, 
+  "Actual" = OJ.test$Purchase
+)
+
+sprintf("prediction error: %.4f", mean(OJ.tree.pred != OJ.test$Purchase))
+```
+
+```{r}
+clear_workspace()
+detach(OJ)
+```
+
+####Exercise 10
+We now use boosting to predict Salary in the Hitters data set.
+
+<span style="color:#317eac;">(a)</span> Remove the observations for whom the salary information is unknown, and then log-transform the salaries.
+```{r}
+Hitters <- na.omit(Hitters)
+Hitters$Salary = log(Hitters$Salary)
+attach(Hitters)
+```
+
+<span style="color:#317eac;">(b)</span> Create a training set consisting of the first 200 observations, and a test set consisting of the remaining observations.
+
+```{r}
+train <- 1:200
+Hitters.train <- Hitters[train,] 
+Hitters.test <- Hitters[-train,] 
+```
+
+<span style="color:#317eac;">(c)</span> Perform boosting on the training set with 1,000 trees for a range of values of the shrinkage parameter &lambda;. Produce a plot with different shrinkage values on the x-axis and the corresponding training set MSE on the y-axis. 
+
+```{r, fig.height=7.5, fig.width=15}
+# Specify our sequence of lambda values. 
+# Am using 0 to 0.01 in steps of 0.001, initially, and then
+# 0.015 to 0.02 in steps of 0.01.
+shrinkages <- c(seq(0, 0.01, 0.001),seq(0.015,0.2,0.01))
+
+# Set up our data structure for storing mse.
+err <- vector('numeric', length(shrinkages))
+
+# Loop over our range of lambda values recording mse against training data.
+index <- 1
+for (shrinkage in shrinkages) {
+  
+  Hitters.boost <- gbm(
+    formula = Salary~.,
+    data = Hitters.train,
+    distribution = "gaussian",
+    n.trees = 1000,
+    shrinkage = shrinkage
+  )
+  
+  Hitters.pred <- predict(
+    object = Hitters.boost,
+    n.trees = 1000
+  ) 
+  
+  mse <- mean((Hitters.pred - Hitters.train$Salary) ^ 2) 
+  err[index] <- mse
+  index <- index + 1
+}
+
+# Plot the results
+ggplot() +
+geom_line(
+  colour = "blue",
+  alpha = 0.4,
+  aes(
+    x = shrinkages,
+    y = err
+  )
+) +
+scale_x_continuous(
+  breaks = seq(0, 0.2, 0.01) 
+) +
+theme(
+  axis.text.x = element_text(angle=90, vjust=0.1, hjust=1)
+) +
+ggtitle("Training MSE vs lambda") + 
+labs(
+  x = "lambda",
+  y = "err"  
+)
+
+sprintf(
+  "Minimum training MSE %.4f found with lambda value %.3f", min(err), shrinkages[which.min(err)]
+)
+```
+
+<span style="color:#317eac;">(d)</span> Produce a plot with different shrinkage values on the x-axis and the corresponding test set MSE on the y-axis.
+
+```{r, fig.height=7.5, fig.width=15}
+# Loop over our range of lambda values recording mse against test data.
+index <- 1
+for (shrinkage in shrinkages) {
+  
+  Hitters.boost <- gbm(
+    formula = Salary~.,
+    data = Hitters.train,
+    distribution = "gaussian",
+    n.trees = 1000,
+    shrinkage = shrinkage
+  )
+  
+  Hitters.pred <- predict(
+    object = Hitters.boost, 
+    newdata = Hitters.test,
+    n.trees = 1000
+  ) 
+  
+  mse <- mean((Hitters.pred - Hitters.test$Salary) ^ 2) 
+  err[index] <- mse
+  index <- index + 1
+}
+
+# Plot the results
+ggplot() +
+geom_line(
+  colour = "blue",
+  alpha = 0.4,
+  aes(
+    x = shrinkages,
+    y = err
+  )
+) +
+scale_x_continuous(
+  breaks = seq(0, 0.2, 0.01)
+) +
+theme(
+  axis.text.x = element_text(angle=90, vjust=0.1, hjust=1)
+) +
+ggtitle("Test MSE vs lambda") + 
+labs(
+  x = "lambda",
+  y = "err"  
+)
+
+best.shrinkage <- shrinkages[which.min(err)] 
+
+sprintf(
+  "Minimum test MSE %.4f found with lambda value %.3f", min(err), best.shrinkage
+)
+```
+
+<span style="color:#317eac;">(e)</span> Compare the test MSE of boosting with the test MSE of the best linear regression model that you can build.
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below. The Hitters dataset has 20 variables, of which we're using 19 as predictors. This is amenable to analysis using best subsets, so my first choise was to use this method for model selection. However the lowest test MSE, with a subset of 8 predictors, was 0.4685 - much higher than the test MSE for the best boosted model (0.2508).
+
+I subsequently adopted the "significant predictors" methodology, developed above, to remove high VIF predictors and keep any that remained
+with significant p-values. This led to a model with three predictors (Runs+Years+PutOuts), and a test MSE of 0.4888. Following this, I checked with polynomial terms (up to 6th power) for each of the three predictors, and kept any with significant p-values. This model resulted in a test MSE of 0.3001. I also tested a model including interactions between each of the variables; none of these had significant p-values.
+
+The best regression model, purely on test MSE, then, is the one with 6th degree polynomials. However this doesn't seem to be a very good (or even plausible) model, and it is entirely possible that the low test MSE is an artefact of the procedure.
+</span></div>
+
+*# Best Subsets*
+
+```{r}
+nvmax <- 19
+
+# Fit our best subsets model to the training data.
+Hitters.best <- regsubsets(
+  x = Salary~.,
+  data = Hitters.train, 
+  nvmax = nvmax
+)
+
+# Create a model matrix representation of the test data, for use in matrix algebra below.
+Hitters.test.mat <- model.matrix(
+  object = Salary~.,
+  data = Hitters.test
+) 
+
+# Loop through best subsests of size 1:19 recording test MSE for each. 
+err <- vector('numeric', nvmax)
+for (nv in 1:nvmax){
+  # Get the coefficients for the best subset of predictors of size nv.
+  coefi <- coef(Hitters.best, id=nv)
+  # Predict values of Salary for the test data, using inner product. 
+  pred <- Hitters.test.mat[, names(coefi)]%*%coefi
+  # Store the test MSE for this subset.
+  err[nv] <- mean((Hitters.test$Salary - pred) ^ 2) 
+}
+
+# Now find which number of predictors resulted in the lowest test MSE.
+bestnv <- which.min(err) 
+sprintf("best nv: %d", bestnv)
+
+# And output the matching coefficients and MSE value.
+Hitters.best.coef <- coef(Hitters.best, bestnv) 
+print(Hitters.best.coef)
+sprintf("best subsets test mse: %.4f", err[bestnv])
+```
+
+*# Significant Predictors*
+
+```{r}
+# Check for colinearities. As before, start with the full model, and then remove any 
+# predictors in turn until all VIF values are < 5. 
+glm.fit <- glm(
+  formula = Salary~.,
+  data = Hitters.train
+)
+
+vif(glm.fit)
+
+glm.fit = update(glm.fit, . ~ . -CHits)
+vif(glm.fit)
+
+glm.fit = update(glm.fit, . ~ . -CAtBat)
+vif(glm.fit)
+
+glm.fit = update(glm.fit, . ~ . -CRuns)
+vif(glm.fit)
+
+glm.fit = update(glm.fit, . ~ . -CRBI)
+vif(glm.fit)
+
+glm.fit = update(glm.fit, . ~ . -Hits)
+vif(glm.fit)
+
+glm.fit = update(glm.fit, . ~ . -AtBat)
+vif(glm.fit)
+
+glm.fit = update(glm.fit, . ~ . -CWalks)
+vif(glm.fit)
+
+glm.fit = update(glm.fit, . ~ . -RBI)
+vif(glm.fit)
+
+# Check for significant predictors
+summary(glm.fit)
+
+# Refit the model using just the significant predictors and obtain test MSE
+glm.fit = update(glm.fit, . ~ Runs+Years+PutOuts)
+glm.pred <- predict(object = glm.fit, newdata = Hitters.test)
+err <- mean((Hitters.test$Salary - glm.pred) ^ 2) 
+print(sprintf("test mse: %.4f", err))
+```
+
+*# Polynomial terms*
+```{r}
+# Carrying on with our "significant predictors", lets try some polynomial terms in the formula.
+glm.fit = update(glm.fit, . ~ . + poly(Runs,6)+poly(Years,6)+poly(PutOuts,6))
+
+# Check which predictors are now significant 
+summary(glm.fit)
+
+# Refit the model using those predictors/terms.
+glm.fit = update(glm.fit, . ~ Runs+I(Runs^3)+I(Runs^4)+I(Runs^5)+I(Runs^6)+Years+I(Years^2)+I(Years^3)+I(Years^4)+I(Years^6)+PutOuts)
+
+# Check test MSE
+glm.pred <- predict(object = glm.fit, newdata = Hitters.test)
+err <- mean((Hitters.test$Salary - glm.pred) ^ 2) 
+print(sprintf("test mse: %.4f", err))
+```
+
+*# Interactions*
+```{r}
+# Finally, let's keep our three main predictors - but introduces interactions between them.
+glm.fit = update(glm.fit, . ~ . +Runs:Years+Runs:PutOuts+Years:PutOuts)
+
+# Check if any interactions are significant (spoiler alert: no).
+summary(glm.fit)
+```
+
+
+<span style="color:#317eac;">(f)</span> Which variables appear to be the most important predictors in the boosted model? 
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below. In the boosted model, the most important predictor appears to be CAtBat, by some margin; followed by PutOuts, CWalks, Walks and CRBI.   
+</span></div>
+```{r, fig.height=7.5, fig.width=15}
+
+# Fit a boosted regression tree using the best lambda value we found earlier.
+Hitters.boost <- gbm(
+  formula = Salary~.,
+  data = Hitters.train,
+  distribution = "gaussian",
+  n.trees = 1000,
+  shrinkage = best.shrinkage
+)
+
+# Output the summary (relative influence of variables).
+summary(Hitters.boost, las = 2, xlim = c(0,26))
+```
+
+<span style="color:#317eac;">(g)</span> Now apply bagging to the training set. What is the test set MSE for this approach?
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below; with bagging, the test set MSE is 0.2284 - the lowest of all the models tested. 
+</span></div>
+```{r}
+Hitters.bag <- randomForest(
+  formula = Salary~., 
+  data = Hitters.train,
+  mtry = length(Hitters)-1
+) 
+
+Hitters.pred <- predict(
+  object = Hitters.bag, 
+  newdata = Hitters.test
+)
+
+sprintf("test mse: %.4f", mean((Hitters.pred - Hitters.test$Salary) ^ 2))
+```
+
+```{r}
+detach(Hitters)
+clear_workspace()
+```
+
+####Exercise 11
+This question uses the Caravan data set.
+```{r}
+# Creating a dummy variable, since otherwise get the following error in gbm fit:
+# "Error in gbm.fit Bernoulli requires the response to be in {0,1}". Alternative
+# would be to use e.g. unclass(Purchase)-1 ~ 1 as the formula, but for the sake of clarity..
+PurchaseY <- ifelse(Caravan$Purchase == 'Yes', 1, 0) 
+Caravan <- data.frame(Caravan, PurchaseY)
+rm(PurchaseY)
+attach(Caravan)
+```
+
+<span style="color:#317eac;">(a)</span> Create a training set consisting of the first 1,000 observations, and a test set consisting of the remaining observations. 
+
+```{r}
+train <- 1:1000
+Caravan.train <- Caravan[train,] 
+Caravan.test <- Caravan[-train,] 
+Caravan.test.numrows <- nrow(Caravan.test)
+```
+
+<span style="color:#317eac;">(b)</span> Fit a boosting model to the training set with Purchase as the response and the other variables as predictors. Use 1,000 trees, and a shrinkage value of 0.01. Which predictors appear to be the most important?
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below; PPERSAUT is the most important variable, followed by MKOOPKLA and MOPLHOOG.
+</span></div>
+```{r, fig.height=7.5, fig.width=15}
+
+# Fit a boosted classification tree.
+# Note that we get some warnings about variables having no variation;
+# presumably e.g. AVRAAUT is all one value *in our training split* 
+# We could try another split, but this would likely bias the results -
+# plus the instructions explicitly state that the first 1000 observations
+# should be the training set.
+Caravan.boost <- gbm(
+  formula = PurchaseY~.-Purchase,
+  data = Caravan.train,
+  distribution = "bernoulli", # as response is categorical
+  n.trees = 1000,
+  shrinkage = 0.01
+)
+
+# Output the summary (relative influence of variables).
+summary(Caravan.boost, plotit=FALSE)
+```
+
+<span style="color:#317eac;">(c)</span> Use the boosting model to predict the response on the test data. Predict that a person will make a purchase if the estimated probability of purchase is greater than 20%. Form a confusion matrix. What fraction of the people predicted to make a purchase do in fact make one? How does this compare with the results obtained from applying KNN or logistic regression to this data set?
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below. With the boosting model and a threshold of 20% for estimated probability of Purchase, 20% of Yes predictions are correct (31 out of a total 124+31 Yes predictions). This compares with 14.2% using logistic regression. The best KNN model (k=11) scored 0% - since it did not predict any of the 289 actual purchases. However this is because the model was designed to minimise classification error overall; it had 5.99% classification error (although note that this is because it always predicted No - which could also have been achieved by just predicting the majority class). The best KNN model designed to minimise false positives (k=1) still only resulted in 11.53% correct Yes predictions.
+</span></div>
+
+*# Boosting*
+
+```{r}
+Caravan.pred <- predict(
+  object = Caravan.boost, 
+  newdata = Caravan.test,
+  n.trees = 1000,
+  type = "response"
+) 
+
+Caravan.pred.purchase <- rep("No", Caravan.test.numrows)
+Caravan.pred.purchase[Caravan.pred > .2] <- "Yes"
+# output the confusion matrix
+matrix = table(
+  "Predicted" = Caravan.pred.purchase, 
+  "Actual" = Caravan.test$Purchase
+) 
+print(matrix)
+# output the fraction of predicted purchasers, who actually purchase
+sprintf("fraction of Yes predictions which were correct: %.4f", 
+    matrix[2,2] / (matrix[2,1] + matrix[2,2]))
+```
+
+*# Logistic Regression*
+
+```{r}
+# Fit the model.
+# Note that we get some warnings about "fitted probabilities numerically 0 or 1 occurred";
+# again, presumably Purchase is always either Yes or No with respect to one or more of our
+# predictor variables - resulting in them being given unreasonably large weightings (per 
+# discussion at https://www.r-bloggers.com/learn-logistic-regression-and-beyond).    
+Caravan.glm.fit <- glm(
+  # not using bernoulli, so can use regular Purchase variable as predictor.
+  formula = Purchase ~ . -PurchaseY,
+  data = Caravan.train,
+  family = binomial, 
+  subset = train
+) 
+
+# Per the warnings, we should expect to see that certain variables have been assigned
+# much larger coeffificients than the others. ABESAUT, for example (173.037773070).
+coef(Caravan.glm.fit)
+high.coef = na.omit(coef(Caravan.glm.fit)[coef(Caravan.glm.fit) > 30])
+high.coef[2:length(high.coef)]
+
+# Make predictions (probabilities) on the test data.
+Caravan.pred <- predict(
+  object = Caravan.glm.fit, 
+  newdata = Caravan.test, 
+  type = "response"
+)
+
+# Convert our probabilities into No/Yes responses, with 20% threshold.
+Caravan.pred.purchase <- rep("No", Caravan.test.numrows)
+Caravan.pred.purchase[Caravan.pred > .2] <- "Yes"
+
+# output the confusion matrix
+matrix = table(
+  "Predicted" = Caravan.pred.purchase, 
+  "Actual" = Caravan.test$Purchase
+) 
+print(matrix)
+# output the fraction of predicted purchasers, who actually purchase
+sprintf("fraction of Yes predictions which were correct: %.4f", 
+  matrix[2,2] / (matrix[2,1] + matrix[2,2]))
+```
+
+*# KNN*
+
+```{r, fig.height=7.5, fig.width=15}
+# Eyeballing the data, it's possible that we don't need to standardize the values - 
+# since they all seem to be in the same range already. However just to be sure..
+maxk <- 100
+standardized.X <- scale(Caravan[, -c(86,87)]) 
+train.X <- standardized.X[train,]
+test.X <- standardized.X[-train,]
+train.Y <- Caravan.train$Purchase
+test.Y <- Caravan.test$Purchase
+best_knn(maxk, train.X, test.X, train.Y, test.Y)
+
+# OK, KNN predicted zero of the 289 actual Purchases. This is probably because the
+# error being minimised is "knn.pred != test.Y" e.g. classification errors overall, 
+# rather than just false positives. Let's try again, only this time minimise the
+# number of false positives.
+err = vector(mode = "numeric", length = )
+
+for (k in 1 : maxk) {
+  knn.pred <- knn(
+    train = train.X, 
+    test = test.X, 
+    cl = train.Y, 
+    k = k
+  )
+  pred.y <- knn.pred[knn.pred == 'Yes']
+  err[k] <- mean(knn.pred[pred.y] != test.Y[pred.y])
+}
+
+# Find the value of k which had the minimum error.
+bestk <- which.min(err)
+sprintf("best k = %d", bestk)
+
+# Now retrain the model with the best value of k. 
+knn.pred <- knn(
+  train = train.X, 
+  test = test.X, 
+  cl = train.Y, 
+  k = bestk
+)
+
+# output the confusion matrix
+matrix = table(
+  "Predicted" = knn.pred, 
+  "Actual" = test.Y
+) 
+print(matrix)
+# output the fraction of predicted purchasers, who actually purchase
+print(matrix[2,2] / (matrix[2,1] + matrix[2,2]))
+
+```
+
+```{r}
+clear_workspace()
+detach(Caravan)
+```
+
+### Week 10
+Build a Ridge and a Lasso model for the problem considered in Excercise 10 from Chapter 8 of Tibshirani's ISLR book, with particular values of the models' parameters chosen by you. Then tune/optimise the models with cross validation. Compare your optimised Ridge and Lasso models with the models you developed in point (e) of the above mentioned exercise, and choose the best one justifying your choice.
+
+<div style="background-color:rgb(255,247,202);color:rgb(142,69,35);border: 1px solid #cccccc;border-radius: 4px;padding: 9.5px;margin: 0 0 10px;font-size: 13px;line-height: 1.42857143;"><span>
+# See below. The model with the lowest test MSE (0.3001) from (e) above - the model with 6th order polynomial terms - resulted in both Lasso and Ridge models having a higher test MSE (0.3872 and 0.4069 respectively). This seems surprising, however given that both Ridge and Lasso punish complexity, and given that the success of this model on the test data is likely have been due to its complexity, then perhaps it is an indicator that this is not a good model. 
+
+Alternatively, using all predictors, both Lasso and Ridge had marginally lower test MSE than the best subsets model from (e) above; 0.4714 and 0.4554, respectively - vs the earlier 0.4888.
+
+In terms of choosing one of the three as the best linear model, then irrespective of the lowest test MSE I would pick ridge. The model is already reasonably sparse, reducing the value of lasso over it; as can be seen from the bar chart of Ridge coefficients (using all predictors), it arrives at a similar number of "main" variables as the other two. Best subsets may sound like a better alternative (since we have a low enough number of predictors to allow a brute-force approach) however I suspect that ridge - being by design a guard against over-fitting - might cope better with unseen data, if we really did have a test (as opposed to a validation) set.
+</span></div>
+
+*# Using model with best test MSE from earlier*
+
+```{r}
+# Once again remove NAs and log-transform Salary.  Note we don't need to set a seed here, 
+# e.g. to re-create the state of our data from up the page, since we're not using any randomness.
+Hitters <- na.omit(Hitters)
+Hitters$Salary = log(Hitters$Salary)
+attach(Hitters)
+
+# Create a model matrix of our predictors (using the best combination of predictors/polynomials/interactions
+# found in (e) above.
+x <- model.matrix(Salary ~ Runs+I(Runs^3)+I(Runs^4)+I(Runs^5)+I(Runs^6)+Years+I(Years^2)+I(Years^3)+I(Years^4)+I(Years^6)+PutOuts)[,-1]
+
+# Set up our training/test split, with the training set being the first 200 observations.
+train <- 1:200
+y <- Hitters$Salary
+x.train <- x[train,]
+x.test <- x[-train,]
+y.train <- y[train]
+y.test <- y[-train]
+```
+
+*# Ridge Regression*
+
+```{r, fig.height=7.5, fig.width=15}
+
+# Use cross-validation to find the best value of lambda (for ridge regression) given our training set.
+Hitters.cv.ridge <- cv.glmnet(
+  x = x.train,
+  y = y.train,
+  alpha = 0 # specify ridge regression
+) 
+
+Hitters.ridge.bestlam <- Hitters.cv.ridge$lambda.min 
+sprintf("Ridge best lambda: %.4f", Hitters.ridge.bestlam)
+
+plot(Hitters.cv.ridge) 
+
+# Predict salaries based on this model.
+Hitters.ridge <- glmnet(
+  x = x.train, 
+  y = y.train, 
+  alpha = 0
+)
+
+Hitters.pred <- predict(
+  object = Hitters.ridge, 
+  s = Hitters.ridge.bestlam, 
+  newx = x.test
+)
+
+# Calculate the test MSE.
+sprintf("Ridge test MSE: %.4f", mean((Hitters.pred - y.test) ^ 2))
+
+# Inspect the coefficients from our best ridge model.
+coefs <- predict(
+  object = Hitters.ridge, 
+  type = "coefficients", 
+  s = Hitters.ridge.bestlam
+)[2:12,]
+
+# Output the coefficients as a data frame.
+coefs.frame <- data.frame("var" = names(data.frame(x)), "coef" = coefs)
+coefs.frame[order(coefs.frame$var),]
+
+# Also plot the coefficients as a bar chart.
+print(
+   ggplot(
+    data = coefs.frame,
+    aes(
+      x = var, 
+      y = coef
+    )
+  ) +
+  geom_bar(
+    stat="identity"
+  ) +
+  theme(
+    axis.text.x = element_text(angle=90, vjust=0.1, hjust=1)
+  ) 
+)
+```
+
+*# Lasso*
+
+```{r, fig.height=7.5, fig.width=15}
+
+Hitters.cv.lasso <- cv.glmnet(
+  x = x.train,
+  y = y.train,
+  alpha = 1 # lasso
+) 
+
+Hitters.lasso.bestlam <- Hitters.cv.lasso$lambda.min 
+sprintf("Lasso best lambda: %.4f", Hitters.lasso.bestlam)
+
+plot(Hitters.cv.lasso) 
+
+# Predict salaries based on this model.
+Hitters.lasso <- glmnet(
+  x = x.train,
+  y = y.train,
+  alpha = 1
+)
+
+Hitters.pred <- predict(
+  object = Hitters.lasso, 
+  s = Hitters.lasso.bestlam, 
+  newx = x.test
+)
+
+# Calculate the test MSE.
+sprintf("Lasso test MSE: %.4f", mean((Hitters.pred - y.test) ^ 2))
+
+# Retrieve the coefficients.
+coefs <- predict(
+    object = Hitters.lasso, 
+    type = "coefficients", 
+    s = Hitters.lasso.bestlam
+)[2:12,]
+
+# Output those coefficients which haven't been shrunk to zero.
+coefs[abs(coefs) > 0]
+``` 
+
+*# Using all predictors*
+
+```{r}
+x <- model.matrix(Salary ~ ., data = Hitters)[,-1]
+train <- 1:200
+y <- Hitters$Salary
+x.train <- x[train,]
+x.test <- x[-train,]
+y.train <- y[train]
+y.test <- y[-train]
+```
+
+*# Ridge Regression*
+
+```{r, fig.height=7.5, fig.width=15}
+
+# Use cross-validation to find the best value of lambda (for ridge regression) given our training set.
+Hitters.cv.ridge <- cv.glmnet(
+  x = x.train,
+  y = y.train,
+  alpha = 0 # specify ridge regression
+) 
+
+Hitters.ridge.bestlam <- Hitters.cv.ridge$lambda.min 
+sprintf("Ridge best lambda: %.4f", Hitters.ridge.bestlam)
+
+# Predict salaries based on this model.
+Hitters.ridge <- glmnet(
+  x = x.train, 
+  y = y.train, 
+  alpha = 0
+)
+
+Hitters.pred <- predict(
+  object = Hitters.ridge, 
+  s = Hitters.ridge.bestlam, 
+  newx = x.test
+)
+
+# Calculate the test MSE.
+sprintf("Ridge test MSE: %.4f", mean((Hitters.pred - y.test) ^ 2))
+
+# Inspect the coefficients from our best ridge model.
+coefs <- predict(
+  object = Hitters.ridge, 
+  type = "coefficients", 
+  s = Hitters.ridge.bestlam
+)[2:20,]
+
+# Output the coefficients as a data frame.
+coefs.frame <- data.frame("var" = names(data.frame(x)), "coef" = coefs)
+coefs.frame[order(coefs.frame$var),]
+
+# Also plot the coefficients as a bar chart.
+print(
+   ggplot(
+    data = coefs.frame,
+    aes(
+      x = var, 
+      y = coef
+    )
+  ) +
+  geom_bar(
+    stat="identity"
+  ) +
+  theme(
+    axis.text.x = element_text(angle=90, vjust=0.1, hjust=1)
+  ) 
+)
+```
+
+*# Lasso - Using model with best test MSE from earlier*
+
+```{r, fig.height=7.5, fig.width=15}
+
+# Now use cross-validation to find the best value of lambda - for lasso - given our training data.
+Hitters.cv.lasso <- cv.glmnet(
+  x = x.train,
+  y = y.train,
+  alpha = 1 # lasso
+) 
+
+Hitters.lasso.bestlam <- Hitters.cv.lasso$lambda.min 
+sprintf("Lasso best lambda: %.4f", Hitters.lasso.bestlam)
+
+# Predict salaries based on this model.
+Hitters.lasso <- glmnet(
+  x = x.train,
+  y = y.train,
+  alpha = 1
+)
+
+Hitters.pred <- predict(
+  object = Hitters.lasso, 
+  s = Hitters.lasso.bestlam, 
+  newx = x.test
+)
+
+# Calculate the test MSE.
+sprintf("Lasso test MSE: %.4f", mean((Hitters.pred - y.test) ^ 2))
+
+# Retrieve the coefficients.
+coefs <- predict(
+    object = Hitters.lasso, 
+    type = "coefficients", 
+    s = Hitters.lasso.bestlam
+)[2:20,]
+
+# Output those coefficients which haven't been shrunk to zero.
+coefs[abs(coefs) > 0]
+``` 
