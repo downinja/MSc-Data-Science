@@ -1,0 +1,529 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>assign2b</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-04-23"><meta name="DC.source" content="assign2b.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="comment">% this bit below borrowed from http://homepages.gold.ac.uk/nikolaev/MLPts.m</span>
+load <span class="string">sunspot.dat</span>
+year = sunspot(:,1);
+relNums = sunspot(:,2);
+ynrmv = mean(relNums(:));
+sigy = std(relNums(:));
+nrmY = relNums;
+ymin = min(nrmY(:)); ymax=max(nrmY(:));
+relNums = 2.0*((nrmY-ymin)/(ymax-ymin)-0.5);
+Ss = relNums';
+idim = 10;
+odim = length(Ss) - idim;
+y = zeros(1, odim);
+<span class="keyword">for</span> i = 1:odim
+   y(i) = Ss(i+idim);
+   <span class="keyword">for</span> j = 1:idim
+       x(i,idim-j+1)=Ss(i-j+idim);
+   <span class="keyword">end</span>
+<span class="keyword">end</span>
+patterns = x';
+targets = y;
+
+<span class="comment">% right, so we're going to apply a moving window of size 200 over our</span>
+<span class="comment">% 278 possible patterns. (The sunspots data contains 288 rows, but we're</span>
+<span class="comment">% using a 10 year lag to give us 10 inputs per pattern). So first determine</span>
+<span class="comment">% how many windows, etc, we need to apply.</span>
+[numInputs, numPatterns] = size(patterns);
+windowSize = 200;
+numWindows = numPatterns - windowSize;
+
+<span class="comment">% also set some global variables, including weights - since we'll want</span>
+<span class="comment">% to use the same starting conditions when comparing CLASSIC with</span>
+<span class="comment">% FAST_HESSIAN below.</span>
+maxEpochs = 100;
+numHidden = 5;
+learnRate = 0.001;
+initialWeights1 = 0.5*(rand(numHidden, numInputs)-0.5);
+initialWeights2 = 0.5*(rand(1, numHidden)-0.5);
+<span class="comment">%initialWeights1 = [0.1574,0.2029,-0.1865,0.2067,0.0662,-0.2012,-0.1108,0.0234,0.2288,0.2324,-0.1712,0.2353,0.2286,-0.0073,0.1501,-0.1791,-0.0391,0.2079,0.1461,0.2297,0.0779,-0.2321,0.1746,0.2170,0.0894,0.1289,0.1216,-0.0539,0.0777,-0.1644,0.1030,-0.2341,-0.1115,-0.2269,-0.2014,0.1617,0.0974,-0.0915,0.2251,-0.2328,-0.0306,-0.0592,0.1328,0.1476,-0.1566,-0.0051,-0.0272,0.0732,0.1047,0.1273];</span>
+<span class="comment">%initialWeights1 = reshape(initialWeights1, 5, 10);</span>
+<span class="comment">%initialWeights2 = [-0.1120,0.0899,0.0775,-0.1687,-0.1905];</span>
+
+<span class="comment">% now do the training for each of our modes</span>
+modes = {<span class="string">'CLASSIC'</span>, <span class="string">'FAST HESSIAN'</span>};
+<span class="comment">%modes = {'CLASSIC'};</span>
+<span class="comment">%modes = {'FAST HESSIAN'};</span>
+
+<span class="comment">% set up some storage for our results, so that we can plot/tabulate</span>
+<span class="comment">% them at the end</span>
+numModes = size(modes, 2);
+rmses = zeros(numWindows, numModes);
+predictions = zeros(numWindows, numModes);
+predictionErrors = zeros(numWindows, numModes);
+
+<span class="keyword">for</span> i = 1:numModes
+    mode = modes{:, i};
+    isFastHessian = strcmp(mode,<span class="string">'FAST HESSIAN'</span>) == 1;
+    <span class="comment">% reset initial weights</span>
+    weights1 = initialWeights1;
+    weights2 = initialWeights2;
+    <span class="comment">% move our window of 200 patterns over the dataset</span>
+    <span class="keyword">for</span> windowNum = 1:numWindows
+        windowStart = windowNum;
+        windowEnd = windowStart + windowSize - 1;
+        <span class="comment">%fprintf ('Training network on window %d:%d\n', windowStart, windowEnd)</span>
+        windowPatterns = patterns(:, windowStart:windowEnd);
+        windowTargets = targets(:, windowStart:windowEnd);
+        numEpochs = maxEpochs;
+        <span class="comment">%if isFastHessian</span>
+        <span class="comment">%    numEpochs = ceil(numEpochs / (2*windowNum));</span>
+        <span class="comment">%end</span>
+        <span class="keyword">for</span> epoch = 1:numEpochs
+
+            <span class="comment">% Do the forward pass (code again lifted from MLPts.m)</span>
+            hiddenIn = weights1 * windowPatterns;
+            hiddenOut = 1.0 ./ (1.0 + exp(-hiddenIn));
+            <span class="comment">%hiddenOut = tanh(hiddenIn);</span>
+            out = weights2 * hiddenOut;
+            error = windowTargets - out;
+            tss = sum(sum(error.^2));
+            rmse = sqrt(0.5*(tss/numPatterns));
+
+            <span class="comment">% Now do the backward pass. Following Bishop, I'm treating the</span>
+            <span class="comment">% backward pass as containing two stages; firstly the calculation</span>
+            <span class="comment">% of the derivatives with respect to each weight, and then</span>
+            <span class="comment">% secondly the actual weight updates themselves. Note also that</span>
+            <span class="comment">% the calculation of the derivatives is based on the chain rule</span>
+            <span class="comment">% derivations at http://homepages.gold.ac.uk/nikolaev/311bpr.htm.</span>
+
+            <span class="comment">% OK, let's follow the chain rule from the output node K to the weights JK.</span>
+            <span class="comment">% The Jacobian comprises the partial derivatives of the output at K, with</span>
+            <span class="comment">% respect to each Wjk. The gradient compirses the partial derivative of the</span>
+            <span class="comment">% error at K, with respect ot each Wjk.</span>
+            dOkdSk = 1; <span class="comment">% since output node is unthresholded.</span>
+            dSkdWjk = hiddenOut; <span class="comment">% Xj</span>
+            <span class="comment">% basically, the jacobian for each Wjk is just the hidden output.</span>
+            dOkdWjk = dOkdSk .* dSkdWjk; <span class="comment">% jacobian wrt weights to output node (per epoch)</span>
+
+            <span class="comment">% the gradient is just the error times the jacobian</span>
+            dEkdOk = error;
+            dEkdWjk = dEkdOk * dOkdWjk'; <span class="comment">% gradient wrt weights to output node (per epoch)</span>
+
+            <span class="comment">% Now let's follow the chain rule from K down to the weights IJ.</span>
+            <span class="comment">% I haven't been able to figure out how to do this using matrix</span>
+            <span class="comment">% products, so am just expanding some of the matrices to enable</span>
+            <span class="comment">% me to do "cell by cell" multiplication - over the entire</span>
+            <span class="comment">% 50x200 results representing each Wij at each pattern.</span>
+            dOjdSj = (hiddenOut .* (1.0 - hiddenOut)); <span class="comment">% derivative of sigmoid function</span>
+            <span class="comment">%dOjdSj =( 1.0 - hiddenOut.^ 2);</span>
+            dSkdSj = (weights2' .* dOjdSj); <span class="comment">% Wjk * Oj(1-Oj)</span>
+            dSkdSj = repmat(dSkdSj,10,1); <span class="comment">% inflate for cell-by-cell multipication</span>
+
+            <span class="comment">% inflate Xi for cell-by-cell multiplication (hey, it's quick and it works..)</span>
+            dSjdWij = [repmat(windowPatterns(1,:),5,1);
+                    repmat(windowPatterns(2,:),5,1);
+                    repmat(windowPatterns(3,:),5,1);
+                    repmat(windowPatterns(4,:),5,1);
+                    repmat(windowPatterns(5,:),5,1);
+                    repmat(windowPatterns(6,:),5,1);
+                    repmat(windowPatterns(7,:),5,1);
+                    repmat(windowPatterns(8,:),5,1);
+                    repmat(windowPatterns(9,:),5,1);
+                    repmat(windowPatterns(10,:),5,1)];
+
+            <span class="comment">% See report: this is 1 * Wjk * Oj(1-Oj) * Xi, in derivation</span>
+            dOkdWij = dOkdSk .* dSkdSj .* dSjdWij; <span class="comment">% jacobian wrt weights to hidden layer (per pattern)</span>
+
+            <span class="comment">% inflate error term for cell-by-cell-multiplication</span>
+            dEkdOk = repmat(error, 50, 1);
+            <span class="comment">% See report: this is (Yk-Ok) * 1 * Wjk * Oj(1-Oj) * Xi, in derivation</span>
+            dEkdWij = dEkdOk .* dOkdWij; <span class="comment">% gradient wrt weights to hidden layer (per pattern)</span>
+            dEkdWij = sum(dEkdWij, 2); <span class="comment">% gradient wrt weights to hidden layer (per epoch)</span>
+
+            <span class="keyword">if</span> isFastHessian
+                <span class="comment">% combine partials for Wij and Wjk to get single vector</span>
+                <span class="comment">% for gradient and jacobian. (Jacobian still 55x200 at this</span>
+                <span class="comment">% point; gradient is 55x1 as used matrix product eariler.)</span>
+                gradient = [dEkdWij', dEkdWjk];
+                jacobian = [dOkdWij; dOkdWjk];
+                <span class="comment">% calculate / regularise our approximation to the Hessian</span>
+                approxHessian = jacobian * jacobian';
+                approxHessian = approxHessian ./ windowSize;
+                regularisedHessian = approxHessian + (eye(length(approxHessian)) * 0.001);
+                <span class="comment">% use Newton's step to calculate the weight deltas</span>
+                gradient = gradient ./ windowSize;
+                newtons = regularisedHessian\gradient';
+                deltaW1 = reshape(newtons(1:50), 5, 10);
+                deltaW2 = newtons(51:55)';
+            <span class="keyword">else</span> <span class="comment">% fallback to CLASSIC mode</span>
+                <span class="comment">% if we were going to include a momentum term, then it should go</span>
+                <span class="comment">% here - as momentum is an approximation to the second order derivative,</span>
+                <span class="comment">% and we shouldn't apply it to fast hessian code path.</span>
+                deltaW1 = learnRate * reshape(dEkdWij, 5, 10);
+                deltaW2 = learnRate * dEkdWjk;
+            <span class="keyword">end</span>
+            <span class="comment">% Update the weights:</span>
+            weights2 = weights2 + deltaW2;
+            weights1 = weights1 + deltaW1;
+            <span class="comment">%fprintf('Epoch %3d:\tError = %f\trmse = %f\n', epoch, tss, rmse);</span>
+        <span class="keyword">end</span>
+        <span class="comment">% Now we want to give some info back to the code outside the loop,</span>
+        <span class="comment">% so that it can plot the results. This includes making some</span>
+        <span class="comment">% "one step ahead" predictions after training each window of patterns.</span>
+        rmses(windowNum, i) = rmse;
+        <span class="comment">% grab the "one step ahead" pattern and target to use</span>
+        predictionPattern = patterns(:,(windowEnd+1));
+        predictionTarget = targets(:, (windowEnd+1));
+        <span class="comment">% quick application of fwd pass to determine with current weights</span>
+        hiddenIn = weights1 * predictionPattern;
+        hiddenOut = 1.0 ./ (1.0 + exp(-hiddenIn));
+        <span class="comment">%hiddenOut = tanh(hiddenIn);</span>
+        <span class="comment">% store predicted output and error</span>
+        prediction = weights2 * hiddenOut;
+        predictions(windowNum, i) = prediction;
+        predictionError = sqrt(0.5*((prediction - predictionTarget)^2));
+        predictionErrors(windowNum, i) = predictionError;
+    <span class="keyword">end</span>
+
+<span class="keyword">end</span>
+
+<span class="comment">% plot / tabulate the results</span>
+
+<span class="comment">% training error, all modes on one plot</span>
+xaxis = 1:numWindows;
+figure
+hold <span class="string">on</span>
+<span class="keyword">for</span> i = 1:numModes
+    mode = modes{:, i};
+    plot(xaxis, rmses(:,i));
+<span class="keyword">end</span>
+hold <span class="string">off</span>
+title(<span class="string">'RMSE with 200 row moving window'</span>)
+xlabel(<span class="string">'Window'</span>)
+ylabel(<span class="string">'RMSE'</span>)
+legend(modes)
+
+<span class="comment">% predictions vs targets, one plot for each mode</span>
+xaxis = year(211:288);
+<span class="keyword">for</span> i = 1:numModes
+    mode = modes{:, i};
+    figure
+    plot(xaxis, y(201:278), xaxis, predictions(:, i))
+    title(strcat(<span class="string">'One Step Ahead Predictions: '</span>, mode))
+    xlabel(<span class="string">'Year'</span>)
+    ylabel(<span class="string">'Sunspots'</span>)
+    legend(<span class="string">'Actual'</span>, <span class="string">'Predicted'</span>)
+<span class="keyword">end</span>
+
+<span class="comment">% training vs test error, one plot for each mode</span>
+xaxis = 1:numWindows;
+<span class="keyword">for</span> i = 1:numModes
+    mode = modes{:, i};
+    figure
+    plot(xaxis, rmses(:, i), xaxis, predictionErrors(:, i))
+    title(strcat(<span class="string">'Training vs Test RMSE: '</span>, mode))
+    xlabel(<span class="string">'Window'</span>)
+    ylabel(<span class="string">'RMSE'</span>)
+    legend(<span class="string">'Training'</span>, <span class="string">'Test'</span>)
+<span class="keyword">end</span>
+
+<span class="comment">% average training vs test error</span>
+<span class="keyword">for</span> i = 1:numModes
+    mode = modes{:, i};
+    fprintf(<span class="keyword">...</span>
+        <span class="string">'Mode: %s\t Avg Train RMSE = %f\t Avg Test RMSE = %f\n'</span>,<span class="keyword">...</span>
+            mode, mean(rmses(:,i)), mean(predictionErrors(:,i)))
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">Mode: CLASSIC	 Avg Train RMSE = 0.096921	 Avg Test RMSE = 0.106197
+Mode: FAST HESSIAN	 Avg Train RMSE = 0.056183	 Avg Test RMSE = 0.103676
+</pre><img vspace="5" hspace="5" src="assign2b_01.png" style="width:560px;height:420px;" alt=""> <img vspace="5" hspace="5" src="assign2b_02.png" style="width:560px;height:420px;" alt=""> <img vspace="5" hspace="5" src="assign2b_03.png" style="width:560px;height:420px;" alt=""> <img vspace="5" hspace="5" src="assign2b_04.png" style="width:560px;height:420px;" alt=""> <img vspace="5" hspace="5" src="assign2b_05.png" style="width:560px;height:420px;" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+% this bit below borrowed from http://homepages.gold.ac.uk/nikolaev/MLPts.m
+load sunspot.dat
+year = sunspot(:,1); 
+relNums = sunspot(:,2); 
+ynrmv = mean(relNums(:)); 
+sigy = std(relNums(:)); 
+nrmY = relNums;
+ymin = min(nrmY(:)); ymax=max(nrmY(:)); 
+relNums = 2.0*((nrmY-ymin)/(ymax-ymin)-0.5);
+Ss = relNums';
+idim = 10;
+odim = length(Ss) - idim; 
+y = zeros(1, odim);
+for i = 1:odim
+   y(i) = Ss(i+idim);
+   for j = 1:idim
+       x(i,idim-j+1)=Ss(i-j+idim);
+   end
+end
+patterns = x'; 
+targets = y; 
+
+% right, so we're going to apply a moving window of size 200 over our 
+% 278 possible patterns. (The sunspots data contains 288 rows, but we're
+% using a 10 year lag to give us 10 inputs per pattern). So first determine
+% how many windows, etc, we need to apply.
+[numInputs, numPatterns] = size(patterns); 
+windowSize = 200;
+numWindows = numPatterns - windowSize;
+
+% also set some global variables, including weights - since we'll want
+% to use the same starting conditions when comparing CLASSIC with
+% FAST_HESSIAN below.
+maxEpochs = 100;
+numHidden = 5; 
+learnRate = 0.001;  
+initialWeights1 = 0.5*(rand(numHidden, numInputs)-0.5);
+initialWeights2 = 0.5*(rand(1, numHidden)-0.5);
+%initialWeights1 = [0.1574,0.2029,-0.1865,0.2067,0.0662,-0.2012,-0.1108,0.0234,0.2288,0.2324,-0.1712,0.2353,0.2286,-0.0073,0.1501,-0.1791,-0.0391,0.2079,0.1461,0.2297,0.0779,-0.2321,0.1746,0.2170,0.0894,0.1289,0.1216,-0.0539,0.0777,-0.1644,0.1030,-0.2341,-0.1115,-0.2269,-0.2014,0.1617,0.0974,-0.0915,0.2251,-0.2328,-0.0306,-0.0592,0.1328,0.1476,-0.1566,-0.0051,-0.0272,0.0732,0.1047,0.1273];
+%initialWeights1 = reshape(initialWeights1, 5, 10);
+%initialWeights2 = [-0.1120,0.0899,0.0775,-0.1687,-0.1905];
+
+% now do the training for each of our modes
+modes = {'CLASSIC', 'FAST HESSIAN'};
+%modes = {'CLASSIC'};
+%modes = {'FAST HESSIAN'};
+
+% set up some storage for our results, so that we can plot/tabulate
+% them at the end
+numModes = size(modes, 2);
+rmses = zeros(numWindows, numModes);
+predictions = zeros(numWindows, numModes);
+predictionErrors = zeros(numWindows, numModes);
+
+for i = 1:numModes
+    mode = modes{:, i};
+    isFastHessian = strcmp(mode,'FAST HESSIAN') == 1;
+    % reset initial weights
+    weights1 = initialWeights1;
+    weights2 = initialWeights2;
+    % move our window of 200 patterns over the dataset
+    for windowNum = 1:numWindows
+        windowStart = windowNum;
+        windowEnd = windowStart + windowSize - 1;
+        %fprintf ('Training network on window %d:%d\n', windowStart, windowEnd)
+        windowPatterns = patterns(:, windowStart:windowEnd);
+        windowTargets = targets(:, windowStart:windowEnd);
+        numEpochs = maxEpochs;
+        %if isFastHessian
+        %    numEpochs = ceil(numEpochs / (2*windowNum));
+        %end
+        for epoch = 1:numEpochs
+            
+            % Do the forward pass (code again lifted from MLPts.m)
+            hiddenIn = weights1 * windowPatterns;
+            hiddenOut = 1.0 ./ (1.0 + exp(-hiddenIn));
+            %hiddenOut = tanh(hiddenIn);
+            out = weights2 * hiddenOut;
+            error = windowTargets - out;
+            tss = sum(sum(error.^2));
+            rmse = sqrt(0.5*(tss/numPatterns));
+            
+            % Now do the backward pass. Following Bishop, I'm treating the
+            % backward pass as containing two stages; firstly the calculation 
+            % of the derivatives with respect to each weight, and then 
+            % secondly the actual weight updates themselves. Note also that
+            % the calculation of the derivatives is based on the chain rule
+            % derivations at http://homepages.gold.ac.uk/nikolaev/311bpr.htm.
+
+            % OK, let's follow the chain rule from the output node K to the weights JK.
+            % The Jacobian comprises the partial derivatives of the output at K, with 
+            % respect to each Wjk. The gradient compirses the partial derivative of the 
+            % error at K, with respect ot each Wjk.
+            dOkdSk = 1; % since output node is unthresholded. 
+            dSkdWjk = hiddenOut; % Xj
+            % basically, the jacobian for each Wjk is just the hidden output.
+            dOkdWjk = dOkdSk .* dSkdWjk; % jacobian wrt weights to output node (per epoch)
+            
+            % the gradient is just the error times the jacobian
+            dEkdOk = error;
+            dEkdWjk = dEkdOk * dOkdWjk'; % gradient wrt weights to output node (per epoch)
+            
+            % Now let's follow the chain rule from K down to the weights IJ. 
+            % I haven't been able to figure out how to do this using matrix
+            % products, so am just expanding some of the matrices to enable
+            % me to do "cell by cell" multiplication - over the entire
+            % 50x200 results representing each Wij at each pattern.
+            dOjdSj = (hiddenOut .* (1.0 - hiddenOut)); % derivative of sigmoid function
+            %dOjdSj =( 1.0 - hiddenOut.^ 2);
+            dSkdSj = (weights2' .* dOjdSj); % Wjk * Oj(1-Oj)
+            dSkdSj = repmat(dSkdSj,10,1); % inflate for cell-by-cell multipication
+           
+            % inflate Xi for cell-by-cell multiplication (hey, it's quick and it works..)
+            dSjdWij = [repmat(windowPatterns(1,:),5,1);
+                    repmat(windowPatterns(2,:),5,1);
+                    repmat(windowPatterns(3,:),5,1);
+                    repmat(windowPatterns(4,:),5,1);
+                    repmat(windowPatterns(5,:),5,1);
+                    repmat(windowPatterns(6,:),5,1);
+                    repmat(windowPatterns(7,:),5,1);
+                    repmat(windowPatterns(8,:),5,1);
+                    repmat(windowPatterns(9,:),5,1);
+                    repmat(windowPatterns(10,:),5,1)];
+           
+            % See report: this is 1 * Wjk * Oj(1-Oj) * Xi, in derivation
+            dOkdWij = dOkdSk .* dSkdSj .* dSjdWij; % jacobian wrt weights to hidden layer (per pattern)
+            
+            % inflate error term for cell-by-cell-multiplication
+            dEkdOk = repmat(error, 50, 1);
+            % See report: this is (Yk-Ok) * 1 * Wjk * Oj(1-Oj) * Xi, in derivation
+            dEkdWij = dEkdOk .* dOkdWij; % gradient wrt weights to hidden layer (per pattern)
+            dEkdWij = sum(dEkdWij, 2); % gradient wrt weights to hidden layer (per epoch)
+            
+            if isFastHessian
+                % combine partials for Wij and Wjk to get single vector
+                % for gradient and jacobian. (Jacobian still 55x200 at this
+                % point; gradient is 55x1 as used matrix product eariler.)
+                gradient = [dEkdWij', dEkdWjk];
+                jacobian = [dOkdWij; dOkdWjk];
+                % calculate / regularise our approximation to the Hessian
+                approxHessian = jacobian * jacobian';
+                approxHessian = approxHessian ./ windowSize;
+                regularisedHessian = approxHessian + (eye(length(approxHessian)) * 0.001);
+                % use Newton's step to calculate the weight deltas
+                gradient = gradient ./ windowSize;
+                newtons = regularisedHessian\gradient';
+                deltaW1 = reshape(newtons(1:50), 5, 10);
+                deltaW2 = newtons(51:55)';
+            else % fallback to CLASSIC mode
+                % if we were going to include a momentum term, then it should go 
+                % here - as momentum is an approximation to the second order derivative,
+                % and we shouldn't apply it to fast hessian code path.
+                deltaW1 = learnRate * reshape(dEkdWij, 5, 10);
+                deltaW2 = learnRate * dEkdWjk;
+            end
+            % Update the weights:
+            weights2 = weights2 + deltaW2;
+            weights1 = weights1 + deltaW1;
+            %fprintf('Epoch %3d:\tError = %f\trmse = %f\n', epoch, tss, rmse);
+        end
+        % Now we want to give some info back to the code outside the loop,
+        % so that it can plot the results. This includes making some
+        % "one step ahead" predictions after training each window of patterns.
+        rmses(windowNum, i) = rmse;
+        % grab the "one step ahead" pattern and target to use
+        predictionPattern = patterns(:,(windowEnd+1));
+        predictionTarget = targets(:, (windowEnd+1));
+        % quick application of fwd pass to determine with current weights
+        hiddenIn = weights1 * predictionPattern; 
+        hiddenOut = 1.0 ./ (1.0 + exp(-hiddenIn)); 
+        %hiddenOut = tanh(hiddenIn); 
+        % store predicted output and error
+        prediction = weights2 * hiddenOut;
+        predictions(windowNum, i) = prediction;
+        predictionError = sqrt(0.5*((prediction - predictionTarget)^2));
+        predictionErrors(windowNum, i) = predictionError;
+    end
+   
+end
+
+% plot / tabulate the results
+
+% training error, all modes on one plot
+xaxis = 1:numWindows;
+figure
+hold on
+for i = 1:numModes
+    mode = modes{:, i};
+    plot(xaxis, rmses(:,i));
+end
+hold off
+title('RMSE with 200 row moving window')
+xlabel('Window')
+ylabel('RMSE')
+legend(modes)
+
+% predictions vs targets, one plot for each mode
+xaxis = year(211:288);
+for i = 1:numModes
+    mode = modes{:, i};
+    figure
+    plot(xaxis, y(201:278), xaxis, predictions(:, i))
+    title(strcat('One Step Ahead Predictions: ', mode))
+    xlabel('Year')
+    ylabel('Sunspots')
+    legend('Actual', 'Predicted')
+end
+    
+% training vs test error, one plot for each mode
+xaxis = 1:numWindows;
+for i = 1:numModes
+    mode = modes{:, i};
+    figure
+    plot(xaxis, rmses(:, i), xaxis, predictionErrors(:, i))
+    title(strcat('Training vs Test RMSE: ', mode))
+    xlabel('Window')
+    ylabel('RMSE')
+    legend('Training', 'Test')
+end
+
+% average training vs test error
+for i = 1:numModes
+    mode = modes{:, i};
+    fprintf(...
+        'Mode: %s\t Avg Train RMSE = %f\t Avg Test RMSE = %f\n',...
+            mode, mean(rmses(:,i)), mean(predictionErrors(:,i)))
+end
+
+##### SOURCE END #####
+--></body></html>
