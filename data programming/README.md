@@ -9,6 +9,6 @@ Use Python and Matplotlib to perform exploratory analysis on Airbnb listings dat
 ### Assignment 2
 Use R to perform exploratory analysis on a dataset of [Mobile phone activity from the city of Milan and the Province of Trentino (Italy)](https://www.kaggle.com/marcodena/mobile-phone-activity/version/1?sortBy=null&group=dataset).
 
-![A heatmap of Airbnb listings prices for central London](https://github.com/downinja/MSc-Data-Science/tree/master/data%20programming/heatmap_london.png?raw=true)
-![A heatmap of mobile call and data usage for Milan/Trentino](https://github.com/downinja/MSc-Data-Science/tree/master/data%20programming/heatmap_mobile.png?raw=true)
+![A heatmap of Airbnb listings prices for central London](https://github.com/downinja/MSc-Data-Science/blob/master/data%20programming/heatmap_london.png?raw=true)
+![A heatmap of mobile call and data usage for Milan/Trentino](https://github.com/downinja/MSc-Data-Science/blob/master/data%20programming/heatmap_mobile.png?raw=true)
 
