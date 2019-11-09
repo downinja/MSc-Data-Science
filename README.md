@@ -1,3 +1,3 @@
 # Postgraduate Diploma in Data Science, Goldsmiths 
 
-Hello, world. I've been a Java developer for 16 years, and am currently studying MSc Data Science in a late bid to become more relevant. So this repo is for e.g. coursework, and other studenty stuff. 
+Coursework and other studenty stuff, from recent studies in Data Science at Goldsmiths. 
